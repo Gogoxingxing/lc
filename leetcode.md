@@ -178,6 +178,11 @@ In this case, you should ignore redundant slashes and return "/home/foo".
 
 ## TREE
 
+- [314. Binary Tree Vertical Order Traversal
+](#314) | [Leetcode](https://leetcode.com/problems/binary-tree-vertical-order-traversal/description/)
+
+- [Check complete binary tree](#complete-binary-tree) | [Solution](http://www.geeksforgeeks.org/check-whether-binary-tree-complete-not-set-2-recursive-solution/)
+
 - [572. Subtree of Another Tree](#572) | [Leetcode](https://leetcode.com/problems/subtree-of-another-tree/discuss/)
 
 - [Check complete binary tree](#complete-binary-tree) | [Solution](http://www.geeksforgeeks.org/check-whether-binary-tree-complete-not-set-2-recursive-solution/)
@@ -759,6 +764,27 @@ Given a continuous stream of numbers, write a function that returns the first un
 
 ## TWO POINTERS
 
+- [88. Merge Sorted Array](#88) | [Leetcode](https://leetcode.com/problems/merge-sorted-array/description/)
+```
+Given two sorted integer arrays nums1 and nums2, merge nums2 into nums1 as one sorted array.
+```
+
+- [28. Implement strStr()](#28) | [Leetcode](https://leetcode.com/problems/implement-strstr/description/)
+```
+Implement strStr().
+
+Return the index of the first occurrence of needle in haystack, or -1 if needle is not part of haystack.
+
+Example 1:
+
+Input: haystack = "hello", needle = "ll"
+Output: 2
+Example 2:
+
+Input: haystack = "aaaaa", needle = "bba"
+Output: -1
+```
+
 - [15. 3Sum](#15) | [Leetcode](https://leetcode.com/problems/3sum/description/)
 ```
 Given an array S of n integers, are there elements a, b, c in S such that a + b + c = 0? Find all unique triplets in the array which gives the sum of zero.
@@ -1276,6 +1302,22 @@ Given encoded message "12", it could be decoded as "AB" (1 2) or "L" (12).
 The number of ways decoding "12" is 2.
 
 ```
+- [639. Decode ways II](#639) | [Leetcode](https://leetcode.com/problems/decode-ways-ii/description/)
+[Solution](https://leetcode.com/problems/decode-ways-ii/solution/)
+```
+A message containing letters from A-Z is being encoded to numbers using the following mapping way:
+
+'A' -> 1
+'B' -> 2
+...
+'Z' -> 26
+Beyond that, now the encoded string can also contain the character '*', which can be treated as one of the numbers from 1 to 9.
+
+Given the encoded message containing digits and the character '*', return the total number of ways to decode it.
+
+Also, since the answer may be very large, you should return the output mod 10^9 + 7.
+
+```
 
 - [357. Count Numbers with Unique Digits](#357) | [Leetcode](https://leetcode.com/problems/count-numbers-with-unique-digits/description/)
 ```
@@ -1421,6 +1463,16 @@ return 13.
 
 
 ## BACK TRACKING
+- [93. Restore IP Addresses](#93) | [Leetcode](https://leetcode.com/problems/restore-ip-addresses/description/) [Discussion tricy solution](https://leetcode.com/problems/restore-ip-addresses/discuss/30949)
+```
+Given a string containing only digits, restore it by returning all possible valid IP address combinations.
+
+For example:
+Given "25525511135",
+
+return ["255.255.11.135", "255.255.111.35"]. (Order does not matter)
+```
+
 
 - [78. Subsets](#78) | [Leetcode](https://leetcode.com/problems/subsets/description/) [Discussion](https://discuss.leetcode.com/topic/46159/a-general-approach-to-backtracking-questions-in-java-subsets-permutations-combination-sum-palindrome-partitioning?page=1)
 ```
@@ -2622,7 +2674,9 @@ class Solution {
 ### <a name="318"></a>318. Maximum Product of Word Lengths
 ```java
 /*
-ok,int has 32bits,but lower case letters only has 26 .we can use the lowest 26 bit of int indicates that the word has how many kinds of lower case letters .If the lowest bit of int is 1,it indicates the word has lower case letter 'a'.......the order of lower case letter is from right to left,like zyx.....cba.so value[i] indicates the condition of the word i having how many kinds of lower case letters .please vote me for this problem! If you have any question ,please follow up!
+use a array to record bit value of every word in the words array, if one character is in the word, then we set it as 1. for example, for string "abcd",we should have bit value 00000000000..01111(only abcd this four character should be 1). And then go through every pair of two words, if the words don’t share common characters update the maxproduct when needed.
+
+ok,int has 32bits,but lower case letters only has 26. we can use the lowest 26 bit of int indicates that the word has how many kinds of lower case letters.
 
 The reason use 1<< is that let the value of 'a' to be 1?
 Yes, otherwise, 'a' will be missed since 'a' - 'a' = 0.
@@ -2630,25 +2684,29 @@ Yes, otherwise, 'a' will be missed since 'a' - 'a' = 0.
 */
 class Solution {
     public int maxProduct(String[] words) {
-        if (words == null || words.length == 0) return 0;
-        int[] wordCode = new int[words.length];
-        for (int i = 0; i < words.length; i ++) {
-            int code = 0;
-            for (char c : words[i].toCharArray()) {
-                code |= 1 << (c - 'a');
-            }
-            wordCode[i] = code;
+        if(words == null || words.length == 0){
+            return 0;
         }
-        int maxProduct = Integer.MIN_VALUE;
-        for (int i = 0; i < words.length; i++) {
-            for (int j = i + 1; j < words.length; j++) {
-                if ((wordCode[i] & wordCode[j]) == 0) {
-                    maxProduct = Math.max(maxProduct, words[i].length() * words[j].length());
-                }
+        int[] hasCharacter = new int[words.length];
+        for(int i = 0; i < words.length; i++){
+            String word = words[i];
+            for(int j = 0; j < word.length(); j++){
+                hasCharacter[i] = hasCharacter[i] | 1 << (word.charAt(j) - 'a');
             }
         }
         
-        return (maxProduct == Integer.MIN_VALUE) ? 0 : maxProduct;
+        int max = 0;
+        for(int i = 0; i < words.length; i++){
+            String w1 = words[i];
+            for(int j = i + 1; j < words.length; j++){
+                String w2 = words[j];
+                //use brackets to inclue the bit manipulation!
+                if((hasCharacter[i] & hasCharacter[j]) == 0 && (w1.length() * w2.length() > max)){
+                    max = w1.length() * w2.length();
+                }
+            }
+        }
+        return max;
     }
 }
 ```
@@ -4032,6 +4090,10 @@ public class Solution {
 ### <a name="283"></a>283. Move Zeroes
 ```java
 //output is length of non-zero part;if we only care whether all non-zero are in length,don't care what nums are after length
+//代码只需要返回最后有效数组的长度，有效长度之外的数字是什么无所谓，原先input里面的数字不一定要保持原来的相对顺序。
+//1.不用保持非零元素的相对顺序
+//2.不用把0移到右边
+//思路：把右边的非0元素移动到左边的0元素位置。这样就可以minimize writes.
 //num of operations: num of zero
 public class Solution {
     public int moveZeroes(int[] nums) {
@@ -4061,6 +4123,7 @@ public class Solution {
 }
 
 //solution 1: write (optimal, cuz operations reduced)
+//思路：Move all the non-zero elements to the left side of the array and fill the rest of the array by zero.
 //num of operations: nums.length, if there are lots of non-zeros in array, use this
 // bad when: 102020222222
 // good when: 
@@ -4082,19 +4145,25 @@ public class Solution {
 }
 
 //solution 2: swap
-//num of operations: 2 * (num of non-zero), if there are lots of zeros in array, use this
-// good when 000010002
-// bad when 10202222022
+/*
+思路：we can use the two pointers approach. 
+The left point will always mark the next available location for the non-zero element. 
+The right pointer will traverse the array and switch the non-zero elements to the location pointed by the left pointer
+
+num of operations: 2 * (num of non-zero), if there are lots of zeros in array, use this
+good when： 000010002
+bad when： 10202222022
+*/
 public class Solution {
     public void moveZeroes(int[] nums) {
         if (nums == null || nums.length == 0) {
             return;
         }
-        for (int i = 0, j = 0; i < nums.length; i++) {
-            if (nums[i] != 0) {
-                int temp = nums[j];
-                nums[j++] = nums[i];
-                nums[i] = temp;
+        for (int right = 0, left = 0; i < nums.length; right++) {
+            if (nums[right] != 0) {
+                int temp = nums[left];
+                nums[left++] = nums[right];
+                nums[right] = temp;
             }
         }
     }
@@ -4550,6 +4619,10 @@ public class Solution {
  *     // Return null if this NestedInteger holds a single integer
  *     public List<NestedInteger> getList();
  * }
+ */
+
+ /*
+ 解题思路：Use a stack to store the nested integer from last to first. When call hasnext check if it is integer yes return no flatten it again.
  */
 public class NestedIterator implements Iterator<Integer> {
 
@@ -6204,35 +6277,39 @@ class Solution {
 ```
 ### <a name="53"></a>53. Maximum Subarray
 ```java
+/*
+time:O(n), space:O(n)
+we can use dynamica programming to solve this problem, use a array to record the max value at each index. we initialize the array with the first number and set it as the max value. for the rest of the array, we check whether the current number could add to the current sum. We also need to update max value.  
+*/
 class Solution {
     public int maxSubArray(int[] nums) {
-        if (nums == null || nums.length == 0) return 0;
-        int[] dp = new int[nums.length]; //dp[i] means the maximum subarray ending with A[i];
+        if(nums == null || nums.length <= 1){
+            return nums.length == 0 ? 0 : nums[0];
+        }
+        int[] dp = new int[nums.length];
         dp[0] = nums[0];
         int max = dp[0];
-        
-        for (int i = 1; i < nums.length; i ++) {
-            dp[i] = nums[i] + ((dp[i - 1] > 0) ? dp[i - 1] : 0);
-            max = Math.max(dp[i], max);
+        for(int i = 1; i < nums.length; i++){
+            dp[i] = nums[i] + (dp[i - 1] > 0 ? dp[i - 1] : 0);
+            max = Math.max(max, dp[i]);
         }
         return max;
     }
 }
 
 // without DP
-public class Solution {
-    public int maxSubArray(int[] A) {
-        int max = Integer.MIN_VALUE, sum = 0;
-        for (int i = 0; i < A.length; i++) {
-            if (sum < 0) 
-                sum = A[i];
-            else 
-                sum += A[i];
-            if (sum > max)
-                max = sum;
-        }
-        return max;
+//from the dp solution, we notice that we just use the previous one sum, so we can use constant space to replace the record array.
+public int maxSubArray(int[] nums) {
+    int max = Integer.MIN_VALUE, sum = 0;
+    for (int i = 0; i < nums.length; i++) {
+        if (sum < 0) 
+            sum = nums[i];
+        else 
+            sum += nums[i];
+        if (sum > max)
+            max = sum;
     }
+    return max;
 }
 ```
 
@@ -6374,65 +6451,6 @@ class Solution {
         return ans;
     }
 }
-```
-### <a name="91"></a>91. Decode Ways
-```java
-// O(1) Space
-class Solution {
-    public int numDecodings(String s) {
-        if (s == null || s.length() == 0) return 0;
-        
-        int minusOne = (s.charAt(0) == '0') ? 0 : 1;
-        int minusTwo = (s.charAt(0) == '0') ? 0 : 1;
-        
-        for (int i = 1; i < s.length(); i ++) {
-            int combination = 0;
-            int thisDigit = s.charAt(i) - '0';
-            int preDigit = s.charAt(i - 1) - '0';
-            
-            if (thisDigit == 0 && preDigit == 0) {
-                return 0;
-            }
-            if (thisDigit != 0) {
-                combination += minusOne;
-            }
-            if (preDigit != 0 && preDigit * 10 + thisDigit <= 26) {
-                combination += minusTwo;
-            }
-            minusTwo = minusOne;
-            minusOne = combination;
-        }
-        
-        return minusOne;
-    }
-}
-/*
-I used a dp array of size n + 1 to save subproblem solutions. dp[0] means an empty string will have one way to decode, dp[1] means the way to decode a string of size 1. I then check one digit and two digit combination and save the results along the way. In the end, dp[n] will be the end result.
-*/
-// normal DP, O(n) space
-public class Solution {
-    public int numDecodings(String s) {
-        if(s == null || s.length() == 0) {
-            return 0;
-        }
-        int n = s.length();
-        int[] dp = new int[n+1];
-        dp[0] = 1;
-        dp[1] = s.charAt(0) != '0' ? 1 : 0;
-        for(int i = 2; i <= n; i++) {
-            int first = Integer.valueOf(s.substring(i-1, i));
-            int second = Integer.valueOf(s.substring(i-2, i));
-            if(first >= 1 && first <= 9) {
-               dp[i] += dp[i-1];  
-            }
-            if(second >= 10 && second <= 26) {
-                dp[i] += dp[i-2];
-            }
-        }
-        return dp[n];
-    }
-}
-
 ```
 
 ### <a name="494"></a>494. Target Sum
@@ -7392,8 +7410,11 @@ class Solution {
 
 ### <a name="49"></a>49. Group Anagrams
 ```java
-// naive solution
-// hash+sort solution: O(mnlogn) time, O(m) space, m is the num of strs, n is the max length of strs
+/*
+naive solution
+hash+sort solution: O(mnlogn) time, O(m) space, m is the num of strs, n is the max length of strs
+解题思路：Build a map, the key is character-sorted string and the value is all string that has the same characters with the key, We can do this by sorting the string and compare with the key value.. Eg: “eat” -- “aet” is the key, so “eat”,”ate”,”tea”is the value
+*/
 class Solution {
     public List<List<String>> groupAnagrams(String[] strs) {
         if (strs == null || strs.length == 0) return new ArrayList<List<String>>();
@@ -7415,6 +7436,7 @@ class Solution {
 }
 
 // hash+counting sort: O(mn) time, O(m) space, m is the num of strs, n is the length of strs
+//use hashmap, the key is a string key, we can generate this string key by counting the occurences of each character in a string, for example, "aabcccdd" --> "2a1b3c2d", uniquely represent strings with same number of same character. the value of map is strings with the same stringkey. 
 public class Solution {
     public List<List<String>> groupAnagrams(String[] strs) {
         List<List<String>> res = new ArrayList<>();
@@ -7436,10 +7458,8 @@ public class Solution {
             }
             map.get(anagram).add(s);
         }
-        for (Map.Entry<String, ArrayList<String>> entry : map.entrySet()) {//Map.Entry, not Map.entry !!!!!
-            res.add(entry.getValue());
-        }
-        return res;
+        
+        return new ArrayList<List<String>> (map.values());
     }
 }
 
@@ -7461,8 +7481,12 @@ public class Solution {
         
         f[0] = true;
         
-        
-        /* First DP
+        /*
+the intuition behind this approach is that the given problem (ss) can be divided into subproblems s1s1 and s2s2. If these subproblems individually satisfy the required conditions, the complete problem, ss also satisfies the same. e.g. "catsanddog" can be split into two substrings "catsand", "dog". The subproblem "catsand" can be further divided into "cats","and", which individually are a part of the dictionary making "catsand" satisfy the condition. Going further backwards, "catsand", "dog" also satisfy the required criteria individually leading to the complete string "catsanddog" also to satisfy the criteria.
+
+Now, we'll move onto the process of dp array formation. We make use of dp array of size n+1, where n is the length of the given string. We also use two index pointers ii and jj, where ii refers to the length of the substring (s') considered currently starting from the beginning, and jj refers to the index partitioning the current substring (s') into smaller substrings s'(0,j) and s'(j+1,i). To fill in the dp array, we initialize the element dp[0] as true, since the null string is always present in the dictionary, and the rest of the elements of dp as false. We consider substrings of all possible lengths starting from the beginning by making use of index ii. For every such substring, we partition the string into two further substrings s1'and s2' in all possible ways using the index jj (Note that the ii now refers to the ending index of s2'). Now, to fill in the entry dp[i], we check if the dp[j] contains true, i.e. if the substring s1' fulfills the required criteria. If so, we further check if s2' is present in the dictionary. If both the strings fulfill the criteria, we make dp[i] as true, otherwise as false.
+        */
+        //First DP
         for(int i = 1; i <= s.length(); i++){
             for(String str: dict){
                 if(str.length() <= i){
@@ -7474,8 +7498,9 @@ public class Solution {
                     }
                 }
             }
-        }*/
+        }
         
+        /*
         //Second DP
         for(int i=1; i <= s.length(); i++){
             for(int j=0; j < i; j++){
@@ -7484,7 +7509,7 @@ public class Solution {
                     break;
                 }
             }
-        }
+        }*/
         
         return f[s.length()];
     }
@@ -8521,24 +8546,63 @@ public class Solution {
  *     TreeNode(int x) { val = x; }
  * }
  */
-// DFS O(n)
+//DFS O(n)
+//use inorder tranversal
+//iteration
 class Solution {
     public int kthSmallest(TreeNode root, int k) {
-        if (root == null) return 0;
-        
+        if(root == null){
+            return 0;
+        }
         Stack<TreeNode> stack = new Stack<>();
-        while (root != null || !stack.isEmpty()) {
-            while (root != null) {
-                stack.push(root);
-                root = root.left;
+        TreeNode cur = root;
+        while(cur != null){
+            stack.push(cur);
+            cur = cur.left;
+        }
+        while(!stack.isEmpty()){
+            TreeNode tmp = stack.pop();
+            k--;
+            if(k == 0){
+                return tmp.val;
             }
-            root = stack.pop();
-            if (--k == 0) return root.val;
-            root = root.right;
+            while(tmp.right != null){
+                stack.push(tmp.right);
+                tmp.right = tmp.right.left;
+            }
         }
         return -1;
     }
 }
+
+//recursion
+class Solution{
+    int res;
+    int count;
+    public class int findKSmall(TreeNode root, int k){
+        res = 0;
+        count = k;
+        if(root == null){
+            return 0;
+        }
+        helper(root);
+        return res;
+    }
+    private void helper(TreeNode node){
+        if(node.left != null){
+            helper(node.left);
+        }
+        count--;
+        if(count == 0){
+            res = root.val;
+            return;
+        }
+        if(node.right != null){
+            helper(node.right);
+        }
+    }
+}
+//Follow up: 在查询多和更改多的情况下，我们可以为BST的每个节点增加一个int count，然后进行二分查找。
 ```
 
 ### <a name="133"></a> 133. Clone Graph
@@ -8772,4 +8836,360 @@ class TicTacToe {
  * int param_1 = obj.move(row,col,player);
  */
 
+```
+### <a name="93"></a>93. Restore IP Addresses
+```java
+/**
+find all combination
+we can use backtracking to solve this problem. The terminate condition is we have use all the characters in the given string and form the four parts of the ip address.
+for example:"255255113"
+we start from index = 0, we check whether the substring from 0 to 0 is a valid IP or not, if yes, we add to the tmpList as one part of the ip address, then goes to the next level,start from index = 0 + 1, and "5" also is a valid IP, so add to tmpList...keep going so we will get first possible combination which is "2.5.5.2" but it not use all the characters of the input, therefore we end this level searching. backtrack to previous level, and try the 25/255/2551...is also not valid.
+ */
+class Solution {
+    public List<String> restoreIpAddresses(String s) {
+        if(s == null || s.length() == 0 || s.length() > 12){
+            return new ArrayList<>();
+        }
+        List<String> res = new ArrayList<>();
+        List<String> tmpList = new ArrayList<>();
+        backtracking(s, res, tmpList, 0);
+        return res;
+    }
+    
+    private void backtracking(String s, List<String> res, List<String> tmpList, int index){
+        if(tmpList.size() == 4 && index < s.length()){
+    		return;
+    	}
+        if(index == s.length() && tmpList.size() == 4){
+            res.add(convert(tmpList));
+        }else{
+            for(int i = index; i < s.length(); i++){
+                if(isValidIp(s, index, i)){
+                    tmpList.add(s.substring(index, i + 1));
+                    backtracking(s, res, tmpList, i + 1);
+                    tmpList.remove(tmpList.size() - 1);
+                }
+            }
+        }
+    }
+    
+    private boolean isValidIp(String s, int start, int end){
+        if(start > end || end > s.length()) return false;
+        if(end - start + 1 > 3) return false;
+        int value = Integer.valueOf(s.substring(start, end + 1));
+        if(value < 0 || value > 255) return false;
+        if(start != end && value == 0) return false;
+        if(end != start && s.charAt(start) == '0') return false;
+        return true;
+    }
+    
+    private String convert(List<String> tmpList){
+        String ret = "";
+        for(String s : tmpList){
+            ret += s + ".";
+        }
+        return ret.substring(0, ret.length() - 1);
+    }
+}
+
+//tricy method: using three loop to solve this problem.
+class Solution {
+    public List<String> restoreIpAddresses(String s) {
+        List<String> ans = new ArrayList<String>();
+	    int len = s.length();
+	    for (int i = 1; i <=3; ++i){  // first cut
+		    if (len-i > 9) continue;//beacuse every part should not longer than 3 digits.		
+		    for (int j = i+1; j<=i+3; ++j){  //second cut
+			    if (len-j > 6) continue;    			
+			    for (int k = j+1; k<=j+3 && k<len; ++k){  // third cut
+				    int a,b,c,d;                // the four int's seperated by "."
+				    a = Integer.parseInt(s.substring(0,i));  
+				    b = Integer.parseInt(s.substring(i,j)); // notice that "01" can be parsed into 1. Need to deal with that later.
+				    c = Integer.parseInt(s.substring(j,k));
+				    d = Integer.parseInt(s.substring(k));
+				    if (a>255 || b>255 || c>255 || d>255) continue; 
+				    String ip = a+"."+b+"."+c+"."+d;
+				    if (ip.length()<len+3) continue;  // this is to reject those int's parsed from "01" or "00"-like substrings, +3 means add three dot"." in the result
+				    ans.add(ip);
+			    }
+		    }
+	    }
+	return ans;
+    }
+}
+```
+### <a name="28"></a>28. Implement strStr()
+```java
+/**
+everytime we compare needle with equal length substring of haystack
+time:O(n) space:O(1)
+ */
+class Solution {
+    public int strStr(String haystack, String needle) {
+        int hlen = haystack.length();
+        int nlen = needle.length();
+        if(hlen < nlen){
+            return -1;
+        }
+        for(int i = 0; i <= hlen - nlen; i++){
+            if(needle.equals(haystack.substring(i, i + nlen))){
+                return i;
+            }
+        }
+        return -1;
+    }
+}
+```
+### <a name="88"></a>88. Merge Sorted Array
+```java
+/**
+three pointers
+1. track the pos of nums1
+2. track the pos of nums2
+3. track which pos the numbers store in nums1, everytime we store the larger number of the first two pointers numbers
+they both start from the end of array
+ended when we finish go through one of array
+and also which one is finished also matters, if nums2 not finish, we still need to merge rest of them to the nums1 array
+
+time:O(n) space:O(1)
+ */
+class Solution {
+    public void merge(int[] nums1, int m, int[] nums2, int n) {
+        int i = m - 1;
+        int j = n - 1;
+        int k = m + n - 1;
+        while(i >= 0 && j >= 0){
+            nums1[k--] = nums1[i] >= nums2[j] ? nums1[i--] : nums2[j--];
+        }
+        //如果还有i的话那么就直接留在数组了
+        //但是如果还有j没有merge的话 需要如下操作
+        while(j >= 0){
+            nums1[k--] = nums2[j--];
+        }
+    }
+}
+
+//merge sorted array 的平方存在负数
+public void merge(int[] nums1, int m, int[] nums2, int n){
+    nums1 = sortSquare(nums1);
+    nums2 = sortSquare(nums2);
+    int i = m - 1;
+    int j = n - 1;
+    int k = m + n - 1;
+    while(i >= 0 && j >= 0){
+        nums1[k--] = nums1[i] >= nums2[j] ? nums1[i--] : nums2[j--];
+    }
+    while(j >= 0){
+        nums1[k--] = nums2[j--];
+    }
+}
+//对数字的平方后排序
+private int[] sortSquare(int[] nums){
+    int left = 0;
+    int right = nums.length - 1;
+    int index = right;
+    int[] res = new int[nums.length];
+    while(index >= 0){
+        if(nums[left] * nums[left] < nums[right] * nums[right]){
+            res[index--] = nums[right] * nums[right--];
+        }else{
+            res[index--] = nums[left] * nums[left++];
+        }
+    }
+    return res;
+}
+
+```
+
+### <a name="314"></a>2314. Binary Tree Vertical Order Traversal
+```java
+/**
+We marked root as 0, left node of root marked as root value -1,  right node marked as root value +1. For each subtree we do the same operation. Finally, we add nodes with the same marked number into one list, and add all list to the return result.
+use two map, one to record each node and its marked value, other map to record marked value and list of nodes that has this value
+或者再画图解释一下
+  3
+  /\
+ /  \
+ 9  20
+    /\
+   /  \
+  15   7
+time:O(n)
+ */
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */
+class Solution {
+    public List<List<Integer>> verticalOrder(TreeNode root) {
+        List<List<Integer>> res = new ArrayList<>();
+        if(root == null){
+            return res;
+        }
+        //used to record each node and its tag number
+        Map<TreeNode, Integer> recordNum = new HashMap<>();
+        //used to record nodes that have same tag number
+        Map<Integer, List<Integer>> map = new HashMap<>();
+        recordNum.put(root, 0);
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        int min = 0;
+        while(!queue.isEmpty()){
+            TreeNode cur = queue.poll();
+            int w = recordNum.get(cur);
+            if(!map.containsKey(w)){
+                map.put(w, new ArrayList<>());
+            }
+            map.get(w).add(cur.val);
+            if(cur.left != null){
+                queue.add(cur.left);
+                recordNum.put(cur.left, w - 1);
+            }
+            if(cur.right != null){
+                queue.add(cur.right);
+                recordNum.put(cur.right, w + 1);
+            }
+            //因为我们仍然需要找到最小的tag number
+            min = Math.min(min, w);
+        }
+        //从最小（也就是最左的index开始）开始加入res的list中
+        while(map.containsKey(min)){
+            res.add(map.get(min++));
+        }
+        return res;
+    }
+}
+```
+### <a name="91"></a>91. Decode ways
+```java
+/**
+Using dynamic programming to solve this problem, since the next result depend on the previous result. Check current character is in 1-9 or not, yes therefore there is one way to decode, then check previous one and current character if this number is in 10-26 or not, yes, then this is another way to decode. 
+ Eg: input string is “321” dp[0] = 1, dp[1] = 1, dp[2] = dp[1], dp[3] = dp[3 - 1] + dp[3 - 2]
+specially, dp[0] = 1 is just an initialization to make sure our solution works for all strings for lengths >= 2, which means dp[0] is not the number of ways to decode an empty string, it is an initialization as strings with length 0 or 1 will not even enter the loop.
+
+ */
+public class Solution {
+    public int numDecodings(String s) {
+        if(s == null || s.length() == 0) {
+            return 0;
+        }
+        int n = s.length();
+        int[] dp = new int[n+1];//num of ways of decoding s.substring(0, i)
+        dp[0] = 1;
+        dp[1] = s.charAt(0) != '0' ? 1 : 0;
+        for(int i = 2; i <= n; i++) {
+            int first = Integer.valueOf(s.substring(i-1, i));
+            int second = Integer.valueOf(s.substring(i-2, i));
+            if (first >= 1 && first <= 9) {//can form a one-digit num
+                dp[i] += dp[i-1];  
+            }
+            if (second >= 10 && second <= 26) {//can form a two-digit num
+                dp[i] += dp[i-2];
+            }
+        }
+        return dp[n];
+    }
+}
+/*
+optimization
+Optimization: 
+Pre1 ⇒ f(a[i - 1])
+Pre2 => f(a[i - 2])
+Because we only use the result of f(a[i-1]), f(a[i - 2])，therefore we can replace them with constant variable pre1, pre2.
+time: O(n), space: O(1)
+*/
+class Solution {
+    public int numDecodings(String s) {
+        if(s == null || s.length() == 0){
+            return 0;
+        }
+        int pre1 = 1;
+        int pre2 = 0;
+        int cur = 0;
+        for(int i = 0; i < s.length(); i++){
+            int count1 = s.charAt(i) != '0'? pre1:0;
+            int count2 = i >= 1 && s.charAt(i-1) != '0' && Integer.valueOf(s.substring(i-1,i+1)) <= 26 ? pre2 : 0;
+            cur = count1+count2;
+            pre2 = pre1;
+            pre1 = cur;
+            
+        }
+        return cur;
+    }
+}
+```
+### <a name="639"></a>639. Decode ways II
+```java
+/**
+we can observe that the number of decodings possible upto any index, ii, is dependent only on the characters upto the index ii and not on any of the characters following it. This leads us to the idea that this problem can be solved by making use of Dynamic Programming.
+
+p[i]: 前i个字符的解码方法的个数，初始化为字符串的长度+1
+special case:
+dp[0] = 1;
+dp[1] = s.charAt(0) == '*' ? 9 : 1;
+general case:
+从i=2开始遍历，当前遍历到的字符s[i-1]有三种情况：
+1. s[i-1] = 0：0不能单独拆开，只能跟前面的数字一起，而且前面的数字只能是1或2，其他的直接返回0即可。
+那么当前面的数字是1或2的时候，dp[i]的种类数就跟dp[i-2]相等
+s[i-2] = '*', 那么前面的数可以为1或者2，这样就相等于两倍的dp[i-2]；如果前面的数也为0，直接返回0即可。
+
+2.s[i-1] = '*', 
+如果当前数字为星号，那么就创造9种可以单独拆分的方法，所以那么dp[i]至少是等于9倍的dp[i-1]
+如果s[i-2] = 1，那么当前的9种情况都可以跟前面的数字组成两位数，所以dp[i]需要加上9倍的dp[i-2]
+s[i-2] = 2, if s[i - 1] <= 6,才可以组成两位数，所以+=6*dp[i - 2]
+s[i-2] = '*', 前面两种情况的总和，dp[i] += 15*dp[i-2];
+
+3. s[i-1] = 1~9, 数字是可以单独拆分出来的，那么dp[i]至少是等于dp[i-1]的
+讨论前面一个数字的种类，
+1)如果当前数字可以跟前面的数字组成一个小于等于26的两位数的话，dp[i]还需要加上dp[i-2]；
+2)如果前面的数字为星号的话，那么要看当前的数字是否小于等于6，如果是小于等于6，那么前面的数字就可以是1或者2了，此时dp[i]需要加上两倍的dp[i-2]; 如果大于6，那么前面的数字只能是1，所以dp[i]只能加上dp[i-2]。
+ */
+class Solution {
+    public int numDecodings(String s) {
+        long M = 1000000007;
+        char[] arr = s.toCharArray();
+        long[] dp = new long[s.length() + 1];
+        dp[0] = 1;
+        if(arr[0] == '0'){
+            return 0;
+        }
+        dp[1] = (arr[0] == '*') ? 9 : 1;
+        for(int i = 2; i <= arr.length; ++i){
+        	//s[i-1] = '0'
+            if(arr[i - 1] == '0'){
+                if(arr[i - 2] == '1' || arr[i - 2] == '2'){
+                    dp[i] += dp[i - 2];
+                }else if (arr[i - 2] == '*') {
+                    dp[i] += 2 * dp[i - 2];
+                }else{
+                    return 0;
+                }
+            }//s[i - 1] = 1~9
+            else if(arr[i - 1] >= '1' && arr[i - 1] <= '9'){
+                dp[i] += dp[i - 1];
+                if(arr[i - 2] == '1' || arr[i - 2] == '2' && arr[i - 1] <= '6'){
+                    dp[i] += dp[i - 2];
+                }
+                if(arr[i - 2] == '*'){
+                    dp[i] += (arr[i - 1] <= '6') ? (2 * dp[i - 2]) : dp[i - 2];
+                }
+            }else{//s[i - 1] = '*'
+                dp[i] += 9 * dp[i - 1];
+                if (arr[i - 2] == '1'){
+                    dp[i] += 9 * dp[i - 2];
+                }else if (arr[i - 2] == '2') {
+                    dp[i] += 6 * dp[i - 2];
+                }else if (arr[i - 2] == '*') 
+                    dp[i] += 15 * dp[i - 2];
+            }
+            dp[i] %= M;
+        }
+        return (int)dp[s.length()];
+    }
+}
 ```
