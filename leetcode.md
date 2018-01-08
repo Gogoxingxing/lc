@@ -14,6 +14,21 @@ For example:
     28 -> AB 
 ```
 ## DESIGN
+- [251. Flatten 2D Vector](#251) | [Leetcode](https://leetcode.com/problems/flatten-2d-vector/description/) | [Discussion](https://leetcode.com/problems/flatten-2d-vector/discuss/67669)
+```
+Implement an iterator to flatten a 2d vector.
+
+For example,
+Given 2d vector =
+
+[
+  [1,2],
+  [3],
+  [4,5,6]
+]
+By calling next repeatedly until hasNext returns false, the order of elements returned by next should be: [1,2,3,4,5,6].
+```
+
 - [348. Design Tic-Tac-Toe](#348) | [Leetcode](https://leetcode.com/problems/design-tic-tac-toe/description/) | [Discussion](https://leetcode.com/problems/design-tic-tac-toe/discuss/81898)
 ```
 Design a Tic-tac-toe game that is played between two players on a n x n grid.
@@ -2336,6 +2351,70 @@ public TreeNode helper(int preStart, int inStart, int inEnd, int[] preorder, int
 
 ### <a name="378"></a>378. Kth Smallest Element in a Sorted Matrix
 ```java
+/*
+Solution 1:
+minHeap
+Build a minHeap of elements from the first row.
+Do the following operations k-1 times :
+Every time when you poll out the root(Top Element in Heap), you need to know the row number and column number of that element(so we can create a tuple class here), replace that root with the next element from the same column.
+time: O(nlogk)
+*/
+public class Solution {
+    public int kthSmallest(int[][] matrix, int k) {
+        int n = matrix.length;
+        PriorityQueue<Tuple> pq = new PriorityQueue<Tuple>();
+        for(int j = 0; j <= n-1; j++) pq.offer(new Tuple(0, j, matrix[0][j]));
+        for(int i = 0; i < k-1; i++) {
+            Tuple t = pq.poll();
+            if(t.x == n-1) continue;
+            pq.offer(new Tuple(t.x+1, t.y, matrix[t.x+1][t.y]));
+        }
+        return pq.poll().val;
+    }
+}
+
+class Tuple implements Comparable<Tuple> {
+    int x, y, val;
+    public Tuple (int x, int y, int val) {
+        this.x = x;
+        this.y = y;
+        this.val = val;
+    }
+    
+    @Override
+    public int compareTo (Tuple that) {
+        return this.val - that.val;
+    }
+}
+/*
+Solution 2:
+priorityQueue, maxHeap
+*/
+class Solution {
+    public int kthSmallest(int[][] matrix, int k) {
+        if(matrix == null || matrix[0].length == 0){
+            return 0;
+        }
+        int row = matrix.length, col = matrix[0].length;
+        PriorityQueue<Integer> pq = new PriorityQueue<>(k, new Comparator<Integer>(){
+            public int compare(Integer a, Integer b){
+                return b - a;
+            }
+        });
+        for(int i = matrix.length - 1; i >= 0; i--){
+            for(int j = matrix[0].length - 1; j >= 0; j--){
+                if(pq.size() >= k){
+                    pq.poll();
+                }
+                pq.offer(matrix[i][j]);
+            }
+        }
+        return pq.poll();
+    }
+}
+/*
+basically, Binary Search can be conducted in a certain searching space, this space is from smallest number to the biggest number. because in this problem, array is sorted in two direction, therefore we cannot directly use index as the search space, so we have to do the BS in certain number range.
+*/
 public class Solution {
     public int kthSmallest(int[][] matrix, int k) {
         int lo = matrix[0][0], hi = matrix[matrix.length - 1][matrix[0].length - 1] + 1;//[lo, hi)
@@ -2357,9 +2436,61 @@ public class Solution {
 ### <a name="221"></a>221. Maximal Square
 ```java
 /*
-Logic :
+解题思路：
+brute force:trying to find out every possible square of 1’s that can be formed from within the matrix. Starting from the left uppermost point in the matrix, we search for a 1. No operation needs to be done for a 0. Whenever a 1 is found, we try to find out the largest square that can be formed including that 1. For this, we move diagonally (right and downwards), i.e. we increment the row index and column index temporarily and then check whether all the elements of that row and column are 1 or not. If all the elements happen to be 1, we move diagonally further as previously. If even one element turns out to be 0, we stop this diagonal movement and update the size of the largest square. Now we, continue the traversal of the matrix from the element next to the initial 1 found, till all the elements of the matrix have been traversed.
 
-Top, Left, and Top Left decides the size of the square. If all of them are same, then the size of square increases by 1. If they're not same, they can increase by 1 to the minimal square. If you take an example and work it out, it'll be much easier to understand when it comes to dynamic programing. :)
+*/
+public class Solution {
+    public int maximalSquare(char[][] matrix) {
+        int rows = matrix.length, cols = rows > 0 ? matrix[0].length : 0;
+        int maxsqlen = 0;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (matrix[i][j] == '1') {
+                    int sqlen = 1;
+                    boolean flag = true;
+                    while (sqlen + i < rows && sqlen + j < cols && flag) {
+                        for (int k = j; k <= sqlen + j; k++) {
+                            if (matrix[i + sqlen][k] == '0') {
+                                flag = false;
+                                break;
+                            }
+                        }
+                        for (int k = i; k <= sqlen + i; k++) {
+                            if (matrix[k][j + sqlen] == '0') {
+                                flag = false;
+                                break;
+                            }
+                        }
+                        if (flag)
+                            sqlen++;
+                    }
+                    if (maxsqlen < sqlen) {
+                        maxsqlen = sqlen;
+                    }
+                }
+            }
+        }
+        return maxsqlen * maxsqlen;
+    }
+}
+/*
+We initialize another matrix (dp) with the same dimensions as the original one initialized with all 0’s.
+
+dp(i,j) represents the side length of the maximum square whose bottom right corner is the cell with index (i,j) in the original matrix.
+
+Starting from index (0,0), for every 1 found in the original matrix, we update the value of the current element as:
+dp(i, j) = min(dp(i-1, j), dp(i - 1, j - 1), dp(i, j - 1)) + 1
+
+0 1 1 1 0           0 1 1 1 0
+1 1 1 1 0           1 1 2 2 0
+0 1 1 1 1           0 1 2 3 1
+0 1 1 1 1           0 1 2 3 2
+0 0 1 1 1           0 0 1 2 3
+
+We also remember the size of the largest square found so far. In this way, we traverse the original matrix once and find out the required maximum size. This gives the side length of the square (say maxsqlenmaxsqlen). The required result is the area maxsqlen^2.
+
+time:O(mn), space:O(mn)
 */
 public int maximalSquare(char[][] a) {
     if(a.length == 0) return 0;
@@ -2404,7 +2535,65 @@ public int maximalSquare(char[][] a) {
 
 ### <a name="212"></a>212. Word Search II
 ```java
-// the best solution
+/*
+Solution 1 (backtracking):
+解题思路：
+For each word in the words list, we search it in the board, the searching process can using backtracking, the terminate condition is we have searched the last index of the word. For example, here is the board, and I will use word “oath” to go through my solution. Find the first character ‘o’ in the board, and start from here, using Deep First Search searching the four position around the current position. If we find a match to the second character of the word, we go to the next level. When we find the all word in the board, return true and add it to the result list. We use the same way to search the rest of word in the word list.
+
+Time complexity:O(m * N^2 * 4^K), 4 to the power of k
+m is the words.length, N^2 is the board size, k is the average length of word in the word list
+First we have to find the first letter to start, which gives time O(N^2), then for each search step it has 2~4 neighbours to go, and it has k steps, where k is the length of the word to be searched.
+*/
+class Solution {
+    public List<String> findWords(char[][] board, String[] words) {
+        List<String> res = new ArrayList<>();
+        int row = board.length;
+        int col = board[0].length;
+        for(String word : words){
+            if(find(word, board)){
+                if(!res.contains(word)){ //for test case: [["a"]] ["a","a"] return --> ["a"]
+                    res.add(word);
+                }
+            }
+        }
+        return res;
+    }
+    
+    public boolean find(String word, char[][] board){
+        int row = board.length;
+        int col = board[0].length;
+        char[] wordChar = word.toCharArray();
+        boolean[][] visited = new boolean[row][col];
+        for(int i = 0; i < row; i++){
+            for(int j = 0; j < col; j++){
+                if(board[i][j] == wordChar[0]){
+                    if(search(i, j, board, wordChar, visited, 0)){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    public boolean search(int x, int y, char[][] board, char[] wordChar, boolean[][] visited, int start){
+        if(start == wordChar.length) return true;
+        if(x >= board.length || y >= board[0].length || x < 0 || y < 0 || wordChar[start] != board[x][y] || visited[x][y]){
+            return false;
+        }
+        
+        visited[x][y] = true;
+        if(search(x + 1, y, board, wordChar, visited, start + 1) || search(x, y + 1, board, wordChar, visited, start + 1) || search(x - 1, y, board, wordChar, visited, start + 1) || search(x, y - 1, board, wordChar, visited, start + 1)){
+            return true;
+        }
+        visited[x][y] = false;
+        return false;
+    } 
+}
+
+/* the best solution
+we can use trie tree to solve this problem, if we solve it just by dfs, we need to do many duplicate findings during the process, and it is time consuming, so we insert every words in the words list to a trie tree to reduce the searching times of the same characters. And we also store the word itself at the leaf node. Base on the trie tree, we use the depth first search go through the board, if the word sequence is in the trietree, add it to the result list.
+*/
 public List<String> findWords(char[][] board, String[] words) {
     List<String> res = new ArrayList<>();
     TrieNode root = buildTrie(words);
@@ -2453,75 +2642,33 @@ class TrieNode {
 }
 
 // need to implement Trie!!
-public class Solution {
-    Set<String> res = new HashSet<String>();
-    
-    public List<String> findWords(char[][] board, String[] words) {
-        Trie trie = new Trie();
-        for (String word : words) {
-            trie.insert(word);
-        }
-        
-        int m = board.length;
-        int n = board[0].length;
-        boolean[][] visited = new boolean[m][n];
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                dfs(board, visited, "", i, j, trie);
-            }
-        }
-        
-        return new ArrayList<String>(res);
-    }
-    
-    public void dfs(char[][] board, boolean[][] visited, String str, int x, int y, Trie trie) {
-        if (x < 0 || x >= board.length || y < 0 || y >= board[0].length) return;
-        if (visited[x][y]) return;
-        
-        str += board[x][y];
-        if (!trie.startsWith(str)) return;
-        
-        if (trie.search(str)) {
-            res.add(str);
-        }
-        
-        visited[x][y] = true;
-        dfs(board, visited, str, x - 1, y, trie);
-        dfs(board, visited, str, x + 1, y, trie);
-        dfs(board, visited, str, x, y - 1, trie);
-        dfs(board, visited, str, x, y + 1, trie);
-        visited[x][y] = false;
-    }
-}
 ```
 
 ### <a name="71"></a>71. Simplify Path
 ```java
+//解题思路：data structure i will use is set and stack. we split the path with / into subPath, and the set we store the non-letter character: ".", ".." and "". we check subPath and if it not in the set, we push them into stack as one of the path. during this process, we also need to handle the ".." case, when meet this, we have to pop the top element out.
+//time: O(n)
 class Solution {
     public String simplifyPath(String path) {
-        if (path == null || path.length() == 0) return "";
+        if(path == null || path.length() == 0){
+            return "";
+        }
+        Set<String> set = new HashSet<>(Arrays.asList(".","..",""));
+        //set.add("."); set.add(".."); set.add("");存""因为有//的情况
         Stack<String> stack = new Stack<>();
-        
-        for (String dir : path.split("/")) {
-            if (dir.equals("..")) {
-                if (!stack.isEmpty()) {
-                    stack.pop();
-                }
-                continue;
-            }
-            else if (!dir.equals("") && !dir.equals(".")) {
+        String[] subPaths = path.split("/");
+        for(String dir : subPaths){
+            if(dir.equals("..") && !stack.isEmpty()){
+                stack.pop();
+            }else if(!set.contains(dir)){
                 stack.push(dir);
             }
         }
-        
-        String result = "";
-        while (!stack.empty()) {
-            result = "/" + stack.pop() + result;
-        }
-        
-        return (result.equals("")) ? "/" : result;
+        List<String> list = new ArrayList(stack);
+        return "/"+String.join("/", list);
     }
 }
+
 ```
 
 ### <a name="14"></a>14. Longest Common Prefix
@@ -2547,7 +2694,7 @@ class Solution {
 
 ### <a name="205"></a>205. Isomorphic Strings
 ```java
-// use a hashmap to store relationship between characters
+// use a hashmap to store relationship between characters, if there are conflictions return false
 // case 1: character in A point to another character in B
 // case 2: character in B alreay been pointed by another character in A
 class Solution {
@@ -2590,44 +2737,35 @@ class Solution {
 
 ### <a name="241"></a>241. Different Ways to Add Parentheses
 ```java
-class Solution {
-    // private Map<String, List<Integer>> map = new HashMap<>(); Not helpful at all!!!
-    
+/*
+解题思路：
+we go through the input string, and divide the string into two part at the operation index, then using recursion, find all possibilities and record the result.
+*/
+public class Solution {
     public List<Integer> diffWaysToCompute(String input) {
-        List<Integer> result = new ArrayList<>();
-        for(int i = 0; i < input.length(); i++) {
+        List<Integer> res = new ArrayList<Integer>();
+        for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
             if (c == '-' || c == '+' || c == '*') {
-                String partA = input.substring(0, i);
-                String partB = input.substring(i + 1, input.length());
-                List<Integer> listA = diffWaysToCompute(partA);
-                List<Integer> listB = diffWaysToCompute(partB);
-                /*
-                List<Integer> listA = map.getOrDefault(partA, diffWaysToCompute(partA));
-                List<Integer> listB = map.getOrDefault(partB, diffWaysToCompute(partB));
-                if (!map.containsKey(partA)) {
-                    map.put(partA, listA);
-                }
-                if (!map.containsKey(partB)) {
-                    map.put(partB, listB);
-                }
-                */
-
-                for (Integer a : listA) {
-                    for (Integer b : listB) {
-                        if (c == '-') result.add(a - b);
-                        else if (c == '+') result.add(a + b);
-                        else result.add(a * b);
+                String a = input.substring(0, i);
+                String b = input.substring(i + 1);
+                List<Integer> al = diffWaysToCompute(a);
+                List<Integer> bl = diffWaysToCompute(b);
+                for (int x : al) {
+                    for (int y : bl) {
+                        if (c == '-') {
+                            res.add(x - y);
+                        } else if (c == '+') {
+                            res.add(x + y);
+                        } else if (c == '*') {
+                            res.add(x * y);
+                        }
                     }
                 }
             }
         }
-        
-        if (result.size() == 0) {
-            result.add(Integer.valueOf(input));
-        }
-       // map.put(input, result);
-        return result;
+        if (res.size() == 0) res.add(Integer.valueOf(input));
+        return res;
     }
 }
 ```
@@ -2636,39 +2774,78 @@ class Solution {
 ```java
 /*
 Time complexity is O(len(wordDict) ^ len(s / minWordLenInDict)), because there're len(wordDict) possibilities for each cut
+
+brute force solution:
+check every possible prefix of string in the dictionary of words, if it is found in the dictionary, let say it is s1, then the recursive function is called for the for the remaining portion of that string. this function returns the prefix s1 appended by the result of recursive call using the remaining portion of the string which is (s - s1), if the remaining portion is a substring which can lead to the formation of a valid sentence as per the dictionary. Otherwise, empty list is returned.
+
+Time complexity : O(n^n). Consider the worst case where s=``aaaaaaa"s=‘‘aaaaaaa" and every prefix of ss is present in the dictionary of words, then the recursion tree can grow up to n^n.
+
+Space complexity : O(n^3). In worst case the depth of recursion tree can go up to nn and nodes can contain nn strings each of length nn.
 */
-class Solution {
-    public List<String> wordBreak(String s, List<String> wordDict) {
-        return DFS(s, wordDict, new HashMap<String, List<String>>());
+public class Solution {
+    public List<String> wordBreak(String s, Set<String> wordDict) {
+        return word_Break(s, wordDict, 0);
     }
-    
-    public List<String> DFS(String s, List<String> wordDict, Map<String, List<String>> hm) {
-        if (hm.containsKey(s)) {
-            return hm.get(s);
+    public List<String> word_Break(String s, Set<String> wordDict, int start) {
+        LinkedList<String> res = new LinkedList<>();
+        if (start == s.length()) {
+            res.add("");
         }
-        
-        List<String> result = new ArrayList<>();
-        if (s.length() == 0) {
-            result.add("");
-            return result;
-        }
-        
-        for (String word : wordDict) {
-            if (s.startsWith(word)) {
-                List<String> subResult = DFS(s.substring(word.length()), wordDict, hm);
-                for (String sub : subResult) {
-                    String sentence = word;
-                    if (sub != "") {
-                        sentence += " " + sub;
-                    }
-                    result.add(sentence);
+        for (int end = start + 1; end <= s.length(); end++) {
+            if (wordDict.contains(s.substring(start, end))) {
+                List<String> list = word_Break(s, wordDict, end);
+                for (String l : list) {
+                    res.add(s.substring(start, end) + (l.equals("") ? "" : " ") + l);
                 }
             }
         }
-        hm.put(s, result);
-        return result;
+        return res;
     }
 }
+
+/*
+In the previous approach we can see that many subproblems were redundant, i.e we were calling the recursive function multiple times for the same substring appearing through multiple paths. To avoid this we can use memorization method, where we are making use of a hashmap to store the results in the form of a key:value pair. In this hashmap, the key used is the starting index of the string currently considered and the valuevalue contains all the sentences which can be formed using the substring from this starting index onwards. Thus, if we encounter the same starting index from different function calls, we can return the result directly from the hashmap rather than going for redundant function calls.
+
+Time complexity : O(n^3). Size of recursion tree can go up to n^2. The creation of list takes n time.
+
+Space complexity : O(n^3).The depth of the recursion tree can go up to nn and each activation record can contains a string list of size n.
+*/
+
+/*
+test:
+s = "catsanddog",
+dict = ["cat", "cats", "and", "sand", "dog"].
+
+A solution is ["cats and dog", "cat sand dog"].
+*/
+
+public class Solution{
+    public List<String> wordBreak(String s, Set<String> wordDict){
+        return word_Break(s, wordDict, 0);
+    }
+    Map<Integer, List<String>> map = new HashMap<>();
+
+    public List<String> word_Break(String s, Set<String> wordDict, int start){
+        if(map.containsKey(start)){
+            return map.get(start);
+        }
+        List<String> res = new LinkedList<>();
+        if(start == s.length()){
+            res.add("");
+        }
+        for(int end = start + 1; end <= s.length(); end++){
+            if(wordDict.contains(s.substring(start,end))){
+                List<String> list = word_Break(s, wordDict, end);
+                for(String l : list){
+                    res.add(s.substring(start, end) + (l.equals("") ? "" : " ") + l);
+                }
+            }
+        }
+        map.put(start, res);
+        return res;
+    }
+}
+
 ```
 
 ### <a name="318"></a>318. Maximum Product of Word Lengths
@@ -4891,7 +5068,30 @@ class Solution {
 
 ### <a name="287"></a>287. Find the Duplicate Number
 ```java
-// linked list, O(n)
+/*
+time:O(n), space:O(n)
+解释：
+use a set to solve this problem, we iterate over the array and insert each element into set. Before inserting it, we check whether it is already there. If it is, then we found our duplicate, so we return it.
+*/
+class Solution {
+    public int findDuplicate(int[] nums) {
+        Set<Integer> set = new HashSet<Integer>();
+        for (int num : nums) {
+            if (set.contains(num)) {
+                return num;
+            }
+            set.add(num);
+        }
+
+        return -1;
+    }
+}
+
+// linked list, time:O(n), space:O(1)
+/*
+index 0 1 2 3 4 5 6
+value 1 4 6 6 6 2 3
+*/
 class Solution {
     public int findDuplicate(int[] nums) {
         if (nums == null || nums.length == 0) return -1;
@@ -5452,6 +5652,9 @@ public int findKthLargest(int[] nums, int k) {
 ```
 ### <a name="692"></a>692. Top K Frequent Words
 ```java
+// use minHeap and map. 
+// map, key is the number, value is frequency
+// Put map entry into maxHeap so we can always poll a number with largest frequency
 // O(nlogK)
 class Solution {
     public List<String> topKFrequent(String[] words, int k) {
@@ -5510,7 +5713,10 @@ class Solution {
     }
 }
 
-// use maxHeap. Put entry into maxHeap so we can always poll a number with largest frequency
+// 解题思路：
+// use maxHeap and map. 
+// map, key is the number, value is frequency
+// Put map entry into maxHeap so we can always poll a number with largest frequency
 // O(nlogk)
 public class Solution {
     public List<Integer> topKFrequent(int[] nums, int k) {
@@ -5566,6 +5772,9 @@ public class Solution {
 ```
 ### <a name="155"></a>155. Min Stack
 ```java
+/*
+use stack to store elements, one int variable to keep min, when we offer a number <= min, we push min to the minstack then update the min; when we pop an element, if it == min, update the min to the first element in the stack.
+*/
 class MinStack {
     int min = Integer.MAX_VALUE;
     Stack<Integer> stack;
@@ -5675,40 +5884,52 @@ class Solution {
 
 ### <a name="79"></a>79. Word Search
 ```java
+/*
+解题思路：
+We can traverse the board until we find the board value equals to the first character of the target word. Then we can apply a Depth First Search to the surrounding positions in order to find the rest of the characters.
+*/
 // ask whether allowed to edit board !!!!
 // dfs backtracking solution: O(4^n) time, O(n) stack space, n is word.length
+
 class Solution {
+    int row;
+    int col;
+    boolean[][] visited;
     public boolean exist(char[][] board, String word) {
-        if (board == null || board.length == 0 || board[0].length == 0 || word == null) return false;
-        if (word.length() == 0) return true;
-        
-        for (int i = 0; i < board.length; i ++) {
-            for (int j = 0; j < board[0].length; j ++) {
-                if (searchAround(board, i, j, word, 0)) {
-                    return true;
+        if(board == null || board.length == 0){
+            return false;
+        }
+        row = board.length;
+        col = board[0].length;
+        visited = new boolean[row][col];
+        for(int i = 0; i < row; i++){
+            for(int j = 0; j < col; j++){
+                if(board[i][j] == word.charAt(0)){
+                    if(check(board, word, i, j, 0)){
+                        return true;
+                    }
                 }
             }
         }
         return false;
     }
     
-    public boolean searchAround(char[][] board, int i, int j, String word, int index) {
-        if (index > word.length() - 1) return true; // This line should be placed on TOP !!!!
-        if (i < 0 || i > board.length - 1 || j < 0 || j > board[0].length - 1) return false;
-        
-        if (board[i][j] == word.charAt(index)) {
-            board[i][j] = '0';
-            if (searchAround(board, i + 1, j, word, index + 1) || 
-                searchAround(board, i - 1, j, word, index + 1) ||
-                searchAround(board, i, j + 1, word, index + 1) ||
-                searchAround(board, i, j - 1, word, index + 1)) {
-                return true;
-            }
-            board[i][j] = word.charAt(index);
+    public boolean check(char[][] board, String word, int x, int y, int start){
+        if(word.length() == start){
+            return true;
         }
+        if(x >= row || x < 0 || y >= col || y < 0 || visited[x][y] || word.charAt(start) != board[x][y]){
+            return false;
+        }
+        visited[x][y] = true;
+        if(check(board, word, x + 1, y, start + 1) || check(board, word, x - 1, y, start + 1) || check(board, word, x, y - 1, start + 1) || check(board, word, x, y + 1, start + 1)){
+            return true;
+        }
+        visited[x][y] = false;
         return false;
     }
 }
+
 ```
 
 ### <a name="257"></a>257. Binary Tree Paths
@@ -6184,26 +6405,33 @@ class Solution {
 ```
 ### <a name="240"></a>240. Search a 2D Matrix II
 ```java
+/*
+we can use a pointer at (row, col) to the bottom left of the matrix, then if the currently pointed value is larger than target we can move one row up; if it is smaller, we move one col right
+
+why this algorithm works?
+because the rows are sorted from left-to-right, we know that every value to the right of the current value is larger. Therefore, if the current value is already larger than target, we know that every value to its right will also be too large. A very similar argument can be made for the columns, so this manner of search will always find target in the matrix (if it is present)
+
+time:O(m+n): on every iteration (during which we do not return true) either row or col is is decremented/incremented exactly once. Because row can only be decremented mm times and col can only be incremented n times before causing the while loop to terminate, the loop cannot run for more than n+m iterations. Because all other work is constant, the overall time complexity is linear in the sum of the dimensions of the matrix.
+space: O(1)
+*/
+
 class Solution {
     public boolean searchMatrix(int[][] matrix, int target) {
         if (matrix == null || matrix.length == 0 || matrix[0].length == 0) return false;
-        int row = matrix.length;
-        int coloum = matrix[0].length;
-        
-        int start_row = row - 1;
-        int start_coloum = 0;
-        
-        while (start_row >= 0 && start_coloum < coloum) {
-            int value = matrix[start_row][start_coloum];
-            if (value == target) {
+        // start our "pointer" in the bottom-left
+        int row = matrix.length-1;
+        int col = 0;
+
+        while (row >= 0 && col < matrix[0].length) {
+            if (matrix[row][col] > target) {
+                row--;
+            } else if (matrix[row][col] < target) {
+                col++;
+            } else { // found it
                 return true;
             }
-            if (value > target) {
-                start_row --;
-            } else {
-                start_coloum ++;
-            }
         }
+
         return false;
     }
 }
@@ -6211,6 +6439,43 @@ class Solution {
 
 ### <a name="74"></a>74. Search a 2D Matrix
 ```java
+/*
+解题思路：
+use binary search
+Eliminating one row/one column at a time. 
+start from top-rightmost element in matrix (matrix[0][n-1]) and remove row if target is greater than matrix[0][n-1] or remove column if target is lesser than matrix[0][n-1].
+repeat step 1 until you find the element!
+
+test case: target = 3
+[
+  [1,   3,  5,  7],
+  [10, 11, 16, 20],
+  [23, 30, 34, 50]
+]
+start at 7, p = 0, q = 3
+target3 < 7, p = 0, q = 2
+target3 < 5, p = 0, q = 1
+target3 == 3
+*/
+public boolean searchMatrix(int[][] matrix, int target){
+    if(matrix == null || matrix.length == 0) return false;
+    int row = matrix.length, col = matrix[0].length;
+    int p = 0, q = col - 1;
+    while(p >= 0 && q >= 0 && p < row && q < col){
+        if(target == matrix[p][q]) return true;
+        else if(target > matrix[p][q]) p++;
+        else q--;
+    }
+    return false;
+}
+
+
+/*
+解释：
+instead of treat it as a 2d matrix, we treat it just as a sorted list and then use binary search.
+n * m matrix convert to an array => matrix[x][y] => a[x * m + y]
+an array convert to n * m matrix => a[x] =>matrix[x / m][x % m];
+*/
 class Solution {
     public boolean searchMatrix(int[][] matrix, int target) {
         if (matrix == null || matrix.length == 0 || matrix[0].length == 0) return false;
@@ -6836,6 +7101,12 @@ class Solution {
  *     Interval(int s, int e) { start = s; end = e; }
  * }
  */
+
+ /*
+ 解题思路：
+ Sort the given interval array by its start time, compare previous interval end time with current interval start time,  and check if they have overlap or not, if yes, return false;
+time:O(n)
+ */
 class Solution {
     public boolean canAttendMeetings(Interval[] intervals) {
         Arrays.sort(intervals, (i1, i2) -> Integer.compare(i1.start, i2.start));
@@ -6859,6 +7130,7 @@ class Solution {
  *     Interval() { start = 0; end = 0; }
  *     Interval(int s, int e) { start = s; end = e; }
  * }
+ Sort the given interval list by its start time, then compare previous interval.end with current interval.start, if they are overlapping, merge them(update the end); if not, add the previous one, and go to the next comparison.
  */
 // O(nlogn)
 class Solution {
@@ -6870,12 +7142,8 @@ class Solution {
         
         intervals.sort((a, b) -> Integer.compare(a.start, b.start));
         
-        Interval pre = null;
+        Interval pre = intervals.get(0);
         for (Interval thisInterval : intervals) {
-            if (pre == null) {
-                pre = thisInterval;
-                continue;
-            }
             if (pre.end >= thisInterval.start) {
                 pre.end = Math.max(pre.end, thisInterval.end); // !!!!
             } else {
@@ -6936,80 +7204,104 @@ else
 ```
 ```java
 // BFS Topological sort
-class Solution {
-    public boolean canFinish(int numCourses, int[][] prerequisites) {
-        if (numCourses == 0) return true;
-        int[][] matrix = new int [numCourses][numCourses];
-        int[] indegree = new int [numCourses];
-        
-        for (int i = 0; i < prerequisites.length; i ++) { //requiredCourse -> thisCourse
-            int thisCourse = prerequisites[i][0];
-            int requiredCourse = prerequisites[i][1];
-            
-            matrix[requiredCourse][thisCourse] = 1;
-            indegree[thisCourse] += 1;
-        }
-        
-        Queue<Integer> q = new LinkedList<>();
-        for (int i = 0; i < indegree.length; i ++) {
-            if (indegree[i] == 0) {
-                q.offer(i);
+   public boolean canFinish(int numCourses, int[][] prerequisites) {
+        if (null == prerequisites || numCourses == 0 || prerequisites.length == 0) {
+                return true;
             }
-        }
-        
-        int count = 0;
-        while (!q.isEmpty()) {
-            Integer thisCourse = q.poll();
-            count ++;
-            for (int i = 0; i < numCourses; i ++) {
-                if (matrix[thisCourse][i] == 1) {
-                    matrix[thisCourse][i] = 0;
-                    if (--indegree[i] == 0) {
-                        q.offer(i);
+            int[] preCourses = new int[numCourses];
+            //[1,0] 
+            // store the in-degree # of precourses of one course 
+            // prerequisite[0] means the post-course, preCourses of xx course is yy
+            for (int[] prerequisite : prerequisites) {
+                preCourses[prerequisite[0]]++;
+            }
+        //add all courses which do not have any prerequist course
+            Queue<Integer> queue = new LinkedList<Integer>();
+            for (int i = 0; i < preCourses.length; i++) {
+                if (preCourses[i] == 0) {
+                    queue.add(i);
+                }
+            }
+            int remaining = numCourses;
+            while (!queue.isEmpty()) {
+                int top = queue.poll();
+                remaining--;
+                for (int[] prerequisite : prerequisites) {
+                    if (prerequisite[1] == top) {//寻找每一个后序课程
+                        preCourses[prerequisite[0]]--;//update in-degree(prerequist course)
+                        if (preCourses[prerequisite[0]] == 0) {
+                            queue.add(prerequisite[0]);// if becomes 0, add to queue.
+                        }
                     }
                 }
             }
-        }
-        
-        return count == numCourses;
+            return remaining==0;
     }
 }
 ```
 
 ### <a name="210"></a>210. Course Schedule II
 ```java
-public int[] findOrder(int numCourses, int[][] prerequisites) { 
-    if (numCourses == 0) return null;
-    // Convert graph presentation from edges to indegree of adjacent list.
-    int indegree[] = new int[numCourses], order[] = new int[numCourses], index = 0;
-    for (int i = 0; i < prerequisites.length; i++) // Indegree - how many prerequisites are needed.
-        indegree[prerequisites[i][0]]++;    
-
-    Queue<Integer> queue = new LinkedList<Integer>();
-    for (int i = 0; i < numCourses; i++) 
-        if (indegree[i] == 0) {
-            // Add the course to the order because it has no prerequisites.
-            order[index++] = i;
-            queue.offer(i);
+/*
+Basic idea is to build a graph,  the node is every courses, and if they have relation, we add edge between them. And in  a valid graph, there should be one node which in-degree is 0 which means it has no prerequisite course, so we start from this course then using Breadth First Search find the sequence of taking courses.
+*/
+class Solution {
+    public int[] findOrder(int numCourses, int[][] prerequisites) {
+        //build graph
+        List<Node> graph = new ArrayList<>();
+        //add node
+        for(int i = 0; i < numCourses; i++){
+            graph.add(new Node(i));
         }
-
-    // How many courses don't need prerequisites. 
-    while (!queue.isEmpty()) {
-        int prerequisite = queue.poll(); // Already finished this prerequisite course.
-        for (int i = 0; i < prerequisites.length; i++)  {
-            if (prerequisites[i][1] == prerequisite) {
-                indegree[prerequisites[i][0]]--; 
-                if (indegree[prerequisites[i][0]] == 0) {
-                    // If indegree is zero, then add the course to the order.
-                    order[index++] = prerequisites[i][0];
-                    queue.offer(prerequisites[i][0]);
+        //construct the edge for each node
+        for(int i = 0; i < prerequisites.length; i++){
+            int prev = prerequisites[i][1];
+            int cur = prerequisites[i][0];
+            graph.get(prev).outEdge.add(cur);
+            graph.get(cur).inDegree++;
+        }
+        
+        Queue<Node> queue = new LinkedList<>();//store all course that can take
+        for(int i = 0; i < graph.size(); i++){
+            if(graph.get(i).inDegree == 0){//means this course have no prerequisite course to take
+                queue.offer(graph.get(i));
+            }
+        }
+        
+        int p = 0;
+        int[] res = new int[numCourses];
+        while(!queue.isEmpty()){
+            Node n = queue.poll();
+            res[p++] = n.index;
+            for(int i = 0; i < n.outEdge.size(); i++){
+                Node next = graph.get(n.outEdge.get(i));
+                next.inDegree--;
+                // when in coming edge number is 0
+                // add this course into queue
+                if(next.inDegree == 0){
+                    queue.offer(next);
                 }
-            } 
+            }
         }
+        //check if we have all courses taken, if not which means we have circle in the graph which means it is impossible to take all course
+        return p == numCourses ? res : new int[0];
     }
-
-    return (index == numCourses) ? order : new int[0];
 }
+
+    class Node{
+            //a node represent a course
+            int index; 
+            // course label
+            int inDegree; 
+            //means the # of edges point to the course, which means this course can be taken after finish the number of inDegree courses
+            List<Integer> outEdge;
+            // this course points to other courses, which means this course is other courses prerequisite course
+            public Node(int index){
+                inDegree = 0;
+                this.index = index;
+                outEdge = new ArrayList<>();
+            }
+        }
 ```
 
 ### <a name="253"></a>253. Meeting Rooms II
@@ -7023,7 +7315,9 @@ public int[] findOrder(int numCourses, int[][] prerequisites) {
  *     Interval(int s, int e) { start = s; end = e; }
  * }
  */
- //1,最常见两种解法 O(nlogn) time, O(n) space
+ /*1,最常见两种解法 O(nlogn) time, O(n) space
+Using PriorityQueue to solve this problem, we first sort the given time intervals by their start time, and then use min heap which compare the end time of each interval and keep the interval which has the minimum end time on the top of the heap. Then compare the interval on the top of the heap with other interval, merge the intervals which have intersection. The queue.size() is the final result.
+ */
 class Solution {
     public int minMeetingRooms(Interval[] intervals) {
         if (intervals == null || intervals.length == 0) return 0;
@@ -7482,9 +7776,11 @@ public class Solution {
         f[0] = true;
         
         /*
-the intuition behind this approach is that the given problem (ss) can be divided into subproblems s1s1 and s2s2. If these subproblems individually satisfy the required conditions, the complete problem, ss also satisfies the same. e.g. "catsanddog" can be split into two substrings "catsand", "dog". The subproblem "catsand" can be further divided into "cats","and", which individually are a part of the dictionary making "catsand" satisfy the condition. Going further backwards, "catsand", "dog" also satisfy the required criteria individually leading to the complete string "catsanddog" also to satisfy the criteria.
+说：the intuition behind this approach is that the given problem (s) can be divided into subproblems s1 and s2. If these subproblems individually satisfy the required conditions, the complete problem, s also satisfies the same. 
 
-Now, we'll move onto the process of dp array formation. We make use of dp array of size n+1, where n is the length of the given string. We also use two index pointers ii and jj, where ii refers to the length of the substring (s') considered currently starting from the beginning, and jj refers to the index partitioning the current substring (s') into smaller substrings s'(0,j) and s'(j+1,i). To fill in the dp array, we initialize the element dp[0] as true, since the null string is always present in the dictionary, and the rest of the elements of dp as false. We consider substrings of all possible lengths starting from the beginning by making use of index ii. For every such substring, we partition the string into two further substrings s1'and s2' in all possible ways using the index jj (Note that the ii now refers to the ending index of s2'). Now, to fill in the entry dp[i], we check if the dp[j] contains true, i.e. if the substring s1' fulfills the required criteria. If so, we further check if s2' is present in the dictionary. If both the strings fulfill the criteria, we make dp[i] as true, otherwise as false.
+e.g. "catsanddog" can be split into two substrings "catsand", "dog". The subproblem "catsand" can be further divided into "cats","and", which individually are a part of the dictionary making "catsand" satisfy the condition. Going further backwards, "catsand", "dog" also satisfy the required criteria individually leading to the complete string "catsanddog" also to satisfy the criteria.
+
+Now, we'll move onto the process of dp array formation. We make use of dp array of size n+1, where n is the length of the given string. We also use two index pointers i and j, where i refers to the length of the substring (s') considered currently starting from the beginning, and j refers to the index partitioning the current substring (s') into smaller substrings s'(0,j) and s'(j+1,i). To fill in the dp array, we initialize the element dp[0] as true, since the null string is always present in the dictionary, and the rest of the elements of dp as false. We consider substrings of all possible lengths starting from the beginning by making use of index ii. For every such substring, we partition the string into two further substrings s1'and s2' in all possible ways using the index jj (Note that the ii now refers to the ending index of s2'). Now, to fill in the entry dp[i], we check if the dp[j] contains true, i.e. if the substring s1' fulfills the required criteria. If so, we further check if s2' is present in the dictionary. If both the strings fulfill the criteria, we make dp[i] as true, otherwise as false.
         */
         //First DP
         for(int i = 1; i <= s.length(); i++){
@@ -9192,4 +9488,32 @@ class Solution {
         return (int)dp[s.length()];
     }
 }
+```
+### <a name="251"></a>251.Flatten 2D Vector
+```java
+/**
+use row as the list iterator, use vector as the List<List<>> iterator, everytime we call hasnext before next let j find a not empty list then return next.
+ */
+public class Vector2D implements Iterator<Integer> {
+    Iterator<List<Integer>> vector;
+    Iterator<Integer> row;
+    public Vector2D(List<List<Integer>> vec2d) {
+        vector = vec2d.iterator();
+    }
+
+    @Override
+    public Integer next() {
+        hasNext();
+        return row.next();
+    }
+
+    @Override
+    public boolean hasNext() {
+        while((row == null || !row.hasNext()) && vector.hasNext()){
+            row = vector.next().iterator();
+        }
+        return row != null && row.hasNext();
+    }
+}
+
 ```
