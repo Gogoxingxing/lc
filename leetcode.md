@@ -13,7 +13,65 @@ For example:
     27 -> AA
     28 -> AB 
 ```
+- [418. Sentence Screen Fitting](#418) | [Leetcode](https://leetcode.com/problems/sentence-screen-fitting/description/)
+```
+Given a rows x cols screen and a sentence represented by a list of non-empty words, find how many times the given sentence can be fitted on the screen.
+
+Note:
+
+A word cannot be split into two lines.
+The order of words in the sentence must remain unchanged.
+Two consecutive words in a line must be separated by a single space.
+Total words in the sentence won't exceed 100.
+Length of each word is greater than 0 and won't exceed 10.
+1 ≤ rows, cols ≤ 20,000.
+Example 1:
+
+Input:
+rows = 2, cols = 8, sentence = ["hello", "world"]
+
+Output: 
+1
+
+Explanation:
+hello---
+world---
+
+The character '-' signifies an empty space on the screen.
+Example 2:
+
+Input:
+rows = 3, cols = 6, sentence = ["a", "bcd", "e"]
+
+Output: 
+2
+
+Explanation:
+a-bcd- 
+e-a---
+bcd-e-
+
+The character '-' signifies an empty space on the screen.
+```
+
 ## DESIGN
+- [MineSweeper](#1001)
+```
+Generate a game board for Minesweeper where
+    SIZE is the width & height of the board (i.e., the board is SIZE x SIZE), and
+    BOMB_COUNT is the number of mines/bombs that are randomly placed in the board
+
+0 < SIZE
+0 <= BOMB_COUNT <= SIZE * SIZE
+
+
+Example I/O -- SIZE = 3 & BOMB_COUNT = 2
+
+F F F
+T F F
+F F T
+```
+
 - [251. Flatten 2D Vector](#251) | [Leetcode](https://leetcode.com/problems/flatten-2d-vector/description/) | [Discussion](https://leetcode.com/problems/flatten-2d-vector/discuss/67669)
 ```
 Implement an iterator to flatten a 2d vector.
@@ -952,6 +1010,22 @@ return 2.
 ```
 
 ## GRAPH
+- [547. Friend Circles](#547) | [Leetcode](https://leetcode.com/problems/friend-circles/description/)
+```
+There are N students in a class. Some of them are friends, while some are not. Their friendship is transitive in nature. For example, if A is a direct friend of B, and B is a direct friend of C, then A is an indirect friend of C. And we defined a friend circle is a group of students who are direct or indirect friends.
+
+Given a N*N matrix M representing the friend relationship between students in the class. If M[i][j] = 1, then the ith and jth students are direct friends with each other, otherwise not. And you have to output the total number of friend circles among all the students.
+
+Example 1:
+Input: 
+[[1,1,0],
+ [1,1,0],
+ [0,0,1]]
+Output: 2
+Explanation:The 0th and 1st students are direct friends, so they are in a friend circle. 
+The 2nd student himself is in a friend circle. So return 2.
+```
+
 
 - [133. Clone Graph](#133) | [Leetcode](https://discuss.leetcode.com/topic/4690/simple-java-iterative-bfs-solution-with-hashmap-and-queue)
 ```
@@ -1017,6 +1091,16 @@ Note: you can assume that no duplicate edges will appear in edges. Since all edg
 
 
 ## ARRAY
+- [128. Longest Consecutive Sequence](#128) | [Leetcode](https://leetcode.com/problems/longest-consecutive-sequence/description/)
+```
+Given an unsorted array of integers, find the length of the longest consecutive elements sequence.
+
+For example,
+Given [100, 4, 200, 1, 3, 2],
+The longest consecutive elements sequence is [1, 2, 3, 4]. Return its length: 4.
+
+Your algorithm should run in O(n) complexity.
+```
 
 - [26. Remove Duplicates from Sorted Array](#26) | [Leetcode](https://leetcode.com/problems/remove-duplicates-from-sorted-array/description/)
 ```
@@ -1848,6 +1932,31 @@ For the purpose of this problem, assume that your function returns 0 when the re
 - [29. Divide Two Integers](#29) | [Leetcode](https://leetcode.com/problems/divide-two-integers/description/)
 
 ## LINKED LIST
+- [146. LRU Cache](#146) | [Leetcode](https://leetcode.com/problems/lru-cache/description/)
+```
+Design and implement a data structure for Least Recently Used (LRU) cache. It should support the following operations: get and put.
+
+get(key) - Get the value (will always be positive) of the key if the key exists in the cache, otherwise return -1.
+put(key, value) - Set or insert the value if the key is not already present. When the cache reached its capacity, it should invalidate the least recently used item before inserting a new item.
+
+Follow up:
+Could you do both operations in O(1) time complexity?
+
+Example:
+
+LRUCache cache = new LRUCache( 2 /* capacity */ );
+
+cache.put(1, 1);
+cache.put(2, 2);
+cache.get(1);       // returns 1
+cache.put(3, 3);    // evicts key 2
+cache.get(2);       // returns -1 (not found)
+cache.put(4, 4);    // evicts key 1
+cache.get(1);       // returns -1 (not found)
+cache.get(3);       // returns 3
+cache.get(4);       // returns 4
+```
+
 
 - [237. Delete Node in a Linked List](#237) | [Leetcode](https://leetcode.com/problems/delete-node-in-a-linked-list/description/)
 ```
@@ -2267,55 +2376,81 @@ class Solution {
 ### <a name="22"></a>22. Generate Parentheses
 ```java
 /*
-The idea here is to only add '(' and ')' that we know will guarantee us a solution (instead of adding 1 too many close). Once we add a '(' we will then discard it and try a ')' which can only close a valid '('. Each of these steps are recursively called.
+解释：
+use backtracking to solve this problem:
+only add open or close when we know it will remain a valid sequence. We can do this by keeping track of the number of opening and closing bracket we have placed so far. We can start an opening bracket if we still have one (of n) left to place. And we can start a closing bracket if it would not exceed the number of opening brackets.
 */
 // O(2^n)
-public List<String> generateParenthesis(int n) {
-        List<String> list = new ArrayList<String>();
-        backtrack(list, "", 0, 0, n);
-        return list;
+class Solution {
+    public List<String> generateParenthesis(int n) {
+        List<String> res = new ArrayList<>();
+        if(n <= 0){
+            return res;
+        }
+        helper(new StringBuilder(), res, 0, 0, n);
+        return res;
     }
     
-    public void backtrack(List<String> list, String str, int open, int close, int max){
-        
-        if(str.length() == max*2){
-            list.add(str);
+    private void helper(StringBuilder s, List<String> res, int lp, int rp, int n){
+        if(lp == n && rp == n){
+            res.add(s.toString());
             return;
         }
-        
-        if(open < max)
-            backtrack(list, str+"(", open+1, close, max);
-        if(close < open)
-            backtrack(list, str+")", open, close+1, max);
+        if(lp < n){
+            s.append("(");
+            helper(s, res, lp + 1, rp, n);
+            s.setLength(s.length()-1);
+        }
+        if(rp < lp){
+            s.append(")");
+            helper(s, res, lp, rp + 1, n);
+            s.setLength(s.length()-1);
+        }
     }
+}
 ```
 
 ### <a name="435"></a>435. Non-overlapping Intervals
 ```java
 /*
+解释：
+sort by the (ascending) end time of interval and find the compatible intervals, then the incompatible intervals should be the total number minus the compatible numbers.
+
+why sort by end? : e.g. [ [1,4], [2,3], [3,4] ], the interval with early start might be very long and incompatible with many intervals. But if we choose the interval that ends early, we’ll have more space left to accommodate more intervals. 
+
 Sorting Interval.end in ascending order is O(nlogn), then traverse intervals array to get the maximum number of non-overlapping intervals is O(n). Total is O(nlogn).
 */
- public int eraseOverlapIntervals(Interval[] intervals) {
-        if (intervals.length == 0)  return 0;
-
-        Arrays.sort(intervals, new myComparator());
-        int end = intervals[0].end;
-        int count = 1;        
-
-        for (int i = 1; i < intervals.length; i++) {
-            if (intervals[i].start >= end) {
-                end = intervals[i].end;
+ /**
+ * Definition for an interval.
+ * public class Interval {
+ *     int start;
+ *     int end;
+ *     Interval() { start = 0; end = 0; }
+ *     Interval(int s, int e) { start = s; end = e; }
+ * }
+ */
+class Solution {
+    public int eraseOverlapIntervals(Interval[] intervals) {
+        if(intervals == null || intervals.length == 0){
+            return 0;
+        }
+        int count = 1;
+        //sort intervas by end time
+        Arrays.sort(intervals, new Comparator<Interval>(){
+            public int compare(Interval a, Interval b) {
+                return a.end - b.end;
+            }
+        });
+        Interval last = intervals[0];
+        for(int i = 1; i < intervals.length; i++){
+            if(intervals[i].start >= last.end){
                 count++;
+                last = intervals[i];
             }
         }
         return intervals.length - count;
     }
-    
-    class myComparator implements Comparator<Interval> {
-        public int compare(Interval a, Interval b) {
-            return a.end - b.end;
-        }
-    }
+}
 ```
 
 ### <a name="105"></a>105. Construct Binary Tree from Preorder and Inorder Traversal
@@ -3035,170 +3170,103 @@ beginWord = "hit"
 endWord = "cog"
 wordList = ["hot","dot","dog","lot","log","cog"]
 
-hot: [hit]
-dot: [hot]
-lot: [hot]
-dog: [dot]
-log: [lot]
-cog: [dog, log]
-
-cog, dog, dot, hot, hit
-cog, log, lot, hot, hit
-
 */
+//建立邻居关系：使用hashMap，key是每个词，对于每个词 用26个字母一一替换，如果正好在wordList里，则加入map value neighborlist里
+//利用bfs找到minLen，同时标记结点的depth
+//再利用dfs从后往前找到所有的解，有标记且depth - 1（相邻）
+
+
 class Solution {
+    Map<String, List<String>> map = new HashMap<>();
+    Set<String> doneSet = new HashSet<>();//use to store the node that we have already process
+    Map<String, Integer> deepsMap = new HashMap<>();
     public List<List<String>> findLadders(String beginWord, String endWord, List<String> wordList) {
-        if (beginWord == null || endWord == null || wordList == null || !wordList.contains(endWord)) return new ArrayList<>();
-        Set<String> wordSet = new HashSet<>(wordList);
-        Set<String> currentSet = new HashSet<>();
-        Set<String> nextSet = new HashSet<>();
-        Set<String> visitedSet = new HashSet<>();
-        Map<String, List<String>> traceMap = new HashMap<>();
-        List<List<String>> result = new ArrayList<>();
-        boolean found = false;
-        
-        currentSet.add(beginWord);
-        visitedSet.add(beginWord);
-        
-        while (!found && !currentSet.isEmpty()) {
-            visitedSet.addAll(currentSet);
-            
-            for (String currentWord : currentSet) {
-                List<String> neighbours = getValidNeighbours(currentWord, wordSet);
-                for (String neighbour : neighbours) {
-                    if (visitedSet.contains(neighbour)) continue;
-                    
-                    nextSet.add(neighbour);  
-                    List<String> newList = traceMap.getOrDefault(neighbour, new ArrayList<>());
-                    newList.add(currentWord);
-                    traceMap.put(neighbour, newList);
-                    if (neighbour.equals(endWord)) {
-                        found = true;
+        buildMap(wordList, beginWord);
+        int minLen = bfs(beginWord, endWord, wordList);
+        doneSet.clear();
+        LinkedList<String> curList = new LinkedList<>();
+        List<List<String>> res = new LinkedList<>();
+        curList.add(endWord);
+        doneSet.add(endWord);
+        dfs(curList, res, beginWord, minLen, 1);
+        return res;
+    }
+    
+    public void dfs(LinkedList<String> curList, List<List<String>> res, String target, int minLen, int curDeep){
+        String curStr = curList.get(0);
+        if(curList.size() > minLen) return;
+        else if (curList.size() == minLen){
+            if(curStr.equals(target))//is end word
+                res.add(new ArrayList<>(curList));
+        }else{
+            for(String str : map.get(curStr)){
+                //剪枝：当前的邻居结点是有标记的并且标记是我们想要的标记，进行dfs
+                if(!doneSet.contains(str) && deepsMap.containsKey(str) && deepsMap.get(str) + curDeep < minLen){
+                    curList.addFirst(str);
+                    doneSet.add(str);
+                    dfs(curList, res, target, minLen, curDeep + 1);
+                    //backtracking
+                    doneSet.remove(str);
+                    curList.removeFirst();
+                }
+            }
+        }
+    }
+    //set map, word and its neighbor
+    public void buildMap(List<String> wordList, String beginWord){
+        HashSet<String> wordSet = new HashSet<>();
+        for(String str : wordList){
+            wordSet.add(str);
+        }
+        wordSet.add(beginWord);
+        for(String str : wordSet){
+            map.put(str, new ArrayList<>());
+            diff(str, wordSet);
+        }
+    } 
+    //find everyword possible neighbor in the wordList
+    public void diff(String s, HashSet<String> wordSet){
+        for(int i = 0; i < s.length(); i++){
+            StringBuilder sb = new StringBuilder(s);
+            char cur = sb.charAt(i);
+            for(char c = 'a'; c <= 'z'; c++){//替换字符
+                if(cur != c){//当前的字符和替换字符不相等的时候再替换
+                    sb.setCharAt(i, c);
+                    if(wordSet.contains(sb.toString())){
+                        map.get(s).add(sb.toString());
                     }
                 }
             }
-            currentSet = new HashSet<>(nextSet);
-            nextSet.clear();
         }
-        if (found) {
-            backTracking(result, new ArrayList<>(), traceMap, endWord);
-        }
-        return result;
     }
-    
-    public void backTracking(List<List<String>> result, List<String> oneSolution, Map<String, List<String>> traceMap, String word) {
-        oneSolution.add(word);
-        if (!traceMap.containsKey(word)) {
-            ArrayList<String> solution = new ArrayList<>(oneSolution);
-            Collections.reverse(solution);
-            result.add(solution);
-        } else {
-            for (String neighbour : traceMap.get(word)) {
-                backTracking(result, oneSolution, traceMap, neighbour);
-            }
-        }
-        oneSolution.remove(oneSolution.size() - 1);
-    }
-    
-    public List<String> getValidNeighbours(String word, Set<String> wordSet) {
-        List<String> neighbours = new ArrayList<>();
-        char[] wordCharArray = word.toCharArray();
-        for (int i = 0; i < wordCharArray.length; i ++) {
-            char replacedChar = wordCharArray[i];
-            for (char c = 'a'; c <= 'z'; c ++) {
-                wordCharArray[i] = c;
-                String newWord = String.valueOf(wordCharArray);
-                if (wordSet.contains(newWord)) {
-                    neighbours.add(newWord);
+    //find the min path meanwhile mark depth of every node
+    public int bfs(String beginWord, String endWord, List<String> wordList){
+        if(beginWord.equals(endWord)) return 0;
+        Queue<String> queue = new LinkedList<>();
+        queue.offer(beginWord);
+        doneSet.add(beginWord);
+        deepsMap.put(beginWord, 0);
+        int steps = 1;
+        while(!queue.isEmpty()){
+            int size = queue.size();
+            for(int i = 0; i < size; i++){
+                String cur = queue.poll();
+                if(cur.equals(endWord)) return steps;
+                if(map.containsKey(cur)){
+                    List<String> nxtStrList = map.get(cur);
+                    for(String nxtStr : nxtStrList){
+                        if(!deepsMap.containsKey(nxtStr)){
+                            queue.offer(nxtStr);
+                            deepsMap.put(nxtStr, steps);
+                        }
+                    }
                 }
             }
-            wordCharArray[i] = replacedChar;
+            steps++;
         }
-        return neighbours;
+        return 0;
     }
 }
-
-// 
-public List<List<String>> findLadders(String start, String end, List<String> wordList) {
-   HashSet<String> dict = new HashSet<String>(wordList);
-   List<List<String>> res = new ArrayList<List<String>>();         
-   HashMap<String, ArrayList<String>> nodeNeighbors = new HashMap<String, ArrayList<String>>();// Neighbors for every node
-   HashMap<String, Integer> distance = new HashMap<String, Integer>();// Distance of every node from the start node
-   ArrayList<String> solution = new ArrayList<String>();
-
-   dict.add(start);          
-   bfs(start, end, dict, nodeNeighbors, distance);                 
-   dfs(start, end, dict, nodeNeighbors, distance, solution, res);   
-   return res;
-}
-
-// BFS: Trace every node's distance from the start node (level by level).
-private void bfs(String start, String end, Set<String> dict, HashMap<String, ArrayList<String>> nodeNeighbors, HashMap<String, Integer> distance) {
-  for (String str : dict)
-      nodeNeighbors.put(str, new ArrayList<String>());
-
-  Queue<String> queue = new LinkedList<String>();
-  queue.offer(start);
-  distance.put(start, 0);
-
-  while (!queue.isEmpty()) {
-      int count = queue.size();
-      boolean foundEnd = false;
-      for (int i = 0; i < count; i++) {
-          String cur = queue.poll();
-          int curDistance = distance.get(cur);                
-          ArrayList<String> neighbors = getNeighbors(cur, dict);
-
-          for (String neighbor : neighbors) {
-              nodeNeighbors.get(cur).add(neighbor);
-              if (!distance.containsKey(neighbor)) {// Check if visited
-                  distance.put(neighbor, curDistance + 1);
-                  if (end.equals(neighbor))// Found the shortest path
-                      foundEnd = true;
-                  else
-                      queue.offer(neighbor);
-                  }
-              }
-          }
-
-          if (foundEnd)
-              break;
-      }
-  }
-
-// Find all next level nodes.    
-private ArrayList<String> getNeighbors(String node, Set<String> dict) {
-  ArrayList<String> res = new ArrayList<String>();
-  char chs[] = node.toCharArray();
-
-  for (char ch ='a'; ch <= 'z'; ch++) {
-      for (int i = 0; i < chs.length; i++) {
-          if (chs[i] == ch) continue;
-          char old_ch = chs[i];
-          chs[i] = ch;
-          if (dict.contains(String.valueOf(chs))) {
-              res.add(String.valueOf(chs));
-          }
-          chs[i] = old_ch;
-      }
-
-  }
-  return res;
-}
-
-// DFS: output all paths with the shortest distance.
-private void dfs(String cur, String end, Set<String> dict, HashMap<String, ArrayList<String>> nodeNeighbors, HashMap<String, Integer> distance, ArrayList<String> solution, List<List<String>> res) {
-    solution.add(cur);
-    if (end.equals(cur)) {
-       res.add(new ArrayList<String>(solution));
-    } else {
-       for (String next : nodeNeighbors.get(cur)) {            
-            if (distance.get(next) == distance.get(cur) + 1) {
-                 dfs(next, end, dict, nodeNeighbors, distance, solution, res);
-            }
-        }
-    }           
-   solution.remove(solution.size() - 1);
 
 ```
 
@@ -4053,34 +4121,37 @@ public class Codec {
 ### <a name="15"></a>15. 3Sum
 ```java
 // 1,two pointer O(n^2) time, O(1) space if not consider sorting's stack usage
+/*
+Sorted the given array, for each number in the array, set two pointers after the fixed number, one from the start and one from the end. Every calculation we compare with 0, if larger, we move the end pointer, otherwise move the start pointer until we find the sum of this two pointers equals to the opposite number. Also we need to pay attention to the duplicates situation. Handle it by compare whether the current number is the same with previous one. If yes, just skip it.
+*/
 class Solution {
     public List<List<Integer>> threeSum(int[] nums) {
-        List<List<Integer>> result = new ArrayList<>();
-        if (nums == null || nums.length == 0) {
-            return result;
+        List<List<Integer>> res = new ArrayList<>();
+        if(nums == null || nums.length == 0){
+            return res;
         }
         Arrays.sort(nums);
-        for (int i = 0; i < nums.length - 1; i ++) {
-            if (i > 0 && nums[i] == nums[i - 1]) continue;
-            int j = i + 1;  // j = i if can use many times
-            int k = nums.length - 1;
-            while (j < k) {  // (j <= k>) if can use many times
-                int target = -nums[i];
-                int sum = nums[j] + nums[k];
-                if (target == sum) {
-                    result.add(Arrays.asList(nums[i], nums[j], nums[k]));
-                    j ++;
-                    k --;
-                    while (j < k && nums[j] == nums[j - 1]) {j ++;}
-                    while (j < k && nums[k] == nums[k + 1]) {k --;}
-                } else if (target < sum) {
-                    k --;
-                } else {
-                    j ++;
+        for(int i = 0; i < nums.length - 2; i++){
+            if(i == 0 || nums[i] != nums[i - 1]){
+                int nd = i + 1;
+                int rd = nums.length - 1;
+                while(nd < rd){
+                    int sum = nums[i] + nums[nd] + nums[rd];
+                    if(sum == 0){
+                        res.add(Arrays.asList(nums[i], nums[nd], nums[rd]));
+                        nd++;
+                        rd--;
+                        while(nd < rd && nums[nd] == nums[nd - 1]) nd++;
+                        while(nd < rd && nums[rd] == nums[rd + 1]) rd--;
+                    }else if(sum < 0){
+                        nd++;
+                    }else{
+                        rd--;
+                    }
                 }
             }
         }
-        return result;
+        return res;
     }
 }
 // if each num can be used for any times(results should still be unique):
@@ -4412,6 +4483,9 @@ class Solution {
 
 ### <a name="159"></a>159. Longest Substring with At Most Two Distinct Characters
 ```java
+/*
+use hashmap to record the character and its appear times, use left and right pointers, right used to move forward, update the map, if we find distinctNum > k , keep moving forward left and update the map until the distinctNum <= k. also update the maxLen value.
+*/
 class Solution {
     public int lengthOfLongestSubstringTwoDistinct(String s) {
         if (s == null || s.length() == 0) return 0;
@@ -4447,23 +4521,30 @@ class Solution {
 ### <a name="3"></a>3. Longest Substring Without Repeating Characters
 ```java
 // O(n)
+/*
+like a sliding window, use hashset to store the valid substring, two pointers, one use to add character to substring, other used to remove character in the set once there exist duplicate.
+maintain a maxLen and update it everytime we add new character.
+*/
 class Solution {
     public int lengthOfLongestSubstring(String s) {
-        if (s == null || s.length() == 0) return 0;
-        Map<Character, Integer> hm = new HashMap<>();
-        
-        int i, j;
-        int longestLength = Integer.MIN_VALUE;
-        
-        for (i = 0, j = 0; i < s.length(); i++) {
-            if (hm.containsKey(s.charAt(i))) {
-                j = Math.max(j, hm.get(s.charAt(i)) + 1);
-            }
-            longestLength = Math.max(longestLength, i - j + 1);
-            hm.put(s.charAt(i), i);
+        int maxLen = 0;
+        if(s == null || s.length() == 0){
+            return maxLen;
         }
-        
-        return longestLength;
+        int i = 0;
+        int j = 0;
+        Set<Character> set = new HashSet<>();
+        while(j < s.length()){
+            char cur = s.charAt(j);
+            if(!set.contains(cur)){
+                set.add(cur);
+                j++;
+                maxLen = Math.max(maxLen, set.size());
+            }else{
+                set.remove(s.charAt(i++));
+            }
+        }
+        return maxLen;
     }
 }
 ```
@@ -5113,6 +5194,7 @@ class Solution {
 }
 
 //Java O(1)space using Binary-Search
+//every time get themiddle number count how many numbers are smaller than mid, count <= mid means the duplicate is on the right side, else is in the left side.
 public int findDuplicate(int[] nums) {
 	int low = 1, high = nums.length - 1;
     while (low <= high) {
@@ -6221,6 +6303,10 @@ public int missingNumber(int[] nums) { //binary search
 /* The isBadVersion API is defined in the parent class VersionControl.
       boolean isBadVersion(int version); */
 // O(logN)
+/*
+Time: O(logn)
+Use binary search, everytime check the mid is bad or not, if yes, update right, otherwise update left. Finally, the left should be the answer.
+*/
 public class Solution extends VersionControl {
     public int firstBadVersion(int n) {
         int start = 1;
@@ -8180,6 +8266,37 @@ class Solution {
 
 ### <a name="5"></a>5. Longest Palindromic Substring
 ```java
+/*
+解释：
+using dynamic programming:
+dp(i, j) represents whether s(i ... j) can form a palindromic substring, dp(i, j) is true when s(i) equals to s(j) and s(i+1 ... j-1) is a palindromic substring. When we found a palindrome, check if it’s the longest one. 
+
+Time complexity O(n^2), space: O(n^2)
+*/
+public String longestPalindrome(String s) {
+  int n = s.length();
+  String res = null;
+    
+  boolean[][] dp = new boolean[n][n];
+// dp[i][j] indicates whether substring s starting at index i and ending at j is palindrome
+
+  for (int i = n - 1; i >= 0; i--) {// keep increasing the possible palindrome string
+    for (int j = i; j < n; j++) {// find the max palindrome within this window of (i,j)
+      //check if substring between (i,j) is palindrome
+      dp[i][j] = s.charAt(i) == s.charAt(j) && (j - i < 3 || dp[i + 1][j - 1]);
+            // if window is less than or equal to 3, just end chars should match
+            // if window is > 3, substring (i+1, j-1) should be palindrome too
+
+            //update max palindrome string
+      if (dp[i][j] && (res == null || j - i + 1 > res.length())) {
+        res = s.substring(i, j + 1);
+      }
+    }
+  }
+    
+  return res;
+}
+
 class Solution {
     private int low = 0;
     private int length = 0;
@@ -9513,6 +9630,288 @@ public class Vector2D implements Iterator<Integer> {
             row = vector.next().iterator();
         }
         return row != null && row.hasNext();
+    }
+}
+
+```
+### <a name="128"></a>128. Longest Consecutive Sequence
+```java
+/**
+use a set to record all the numbers in the nums, and go through all the array, when the curNum is th start of the sequence, we keep checking whether the following numbers are in the array or not. maintain the maxLen.
+
+time:O(n), space: O(n)
+Although the time complexity appears to be quadratic due to the while loop nested within the for loop, closer inspection reveals it to be linear. Because the while loop is reached only when currentNum marks the beginning of a sequence (i.e. currentNum-1 is not present in nums), the while loop can only run for nn iterations throughout the entire runtime of the algorithm. This means that despite looking like O(n∗n) complexity, the nested loops actually run in O(n+n)=O(n) time. All other computations occur in constant time, so the overall runtime is linear.
+ */
+class Solution {
+    public int longestConsecutive(int[] nums) {
+        if(nums == null || nums.length == 0){
+            return 0;
+        }
+        Set<Integer> set = new HashSet<>();
+        for(int i = 0; i < nums.length; i++){
+            set.add(nums[i]);
+        }
+        int maxLen = 0;
+        for(int i = 0; i < nums.length; i++){
+            int len = 1;
+            int curNum = nums[i];
+            if(!set.contains(curNum - 1)){//only start while when the curNum is the start of the sequence
+                while(set.contains(curNum + 1)){
+                    len++;
+                    curNum = curNum + 1;
+                }
+                maxLen = Math.max(maxLen, len);
+            }
+        }
+        return maxLen;
+    }
+}
+
+```
+### <a name="1001"></a>Mine Sweeper
+```java
+/**
+
+ */
+import java.util.Random;
+
+class MineSweeper {
+      char[][] mMinefield; // 2-dimensional array of chars for our board
+
+      public MineSweeper(int mWidth, int mHeight, int mMines) {
+            System.out.println("Generating minefield...");
+
+            mMinefield = new char[mHeight][mWidth];
+
+            System.out.println("Clearing minefield...");
+
+            clearMinefield(mHeight,mWidth);
+
+            System.out.println("Placing mines...");
+
+            placeMines(mMines,mWidth,mHeight);
+            drawMinefield(mHeight,mWidth);
+
+            System.out.println("Display minefield...");
+
+            displayMinefield(mHeight,mWidth);
+            drawMinefield(mHeight,mWidth);
+      }
+
+      public void placeMines(int mMines, int mWidth, int mHeight) {
+            int minesPlaced = 0;
+            Random random = new Random(); // this generates random numbers for us
+            while(minesPlaced < mMines) {
+                  int x = random.nextInt(mWidth); // a number between 0 and mWidth - 1
+                  int y = random.nextInt(mHeight);
+                  // make sure we don't place a mine on top of another
+                  if(mMinefield[y][x] != 'F') {
+                        mMinefield[y][x] = 'F';
+                        minesPlaced ++;
+                  }
+            }
+      }
+
+      public void clearMinefield(int mHeight, int mWidth) {
+            // Set every grid space to a space character.
+            for(int y = 0; y < mHeight; y ++) {
+                  for(int x = 0; x < mWidth; x ++) {
+                        mMinefield[y][x] = ' ';
+                  }
+            }
+      }
+
+      public void drawMinefield(int mHeight, int mWidth) {
+            for(int y = 0; y < mHeight; y ++) {
+                  for(int x = 0; x < mWidth; x ++) {
+                        System.out.print(mMinefield[y][x]);
+                  }
+                  System.out.print("\n");
+            }
+      }
+
+      public void displayMinefield(int mHeight, int mWidth) {
+            for(int y = 0; y < mHeight; y ++) {
+                  for(int x = 0; x < mWidth; x ++) {
+                        if(mMinefield[y][x] != 'F') {
+                              mMinefield[y][x] = 'T';
+                        }
+                  }
+            }
+      }
+
+      // this starts the command line application
+      public static void main(String[] args) {
+            MineSweeper mineSweeper = new MineSweeper(3,3,2);
+      }
+}
+
+```
+### <a name="128"></a>128. Longest Consecutive Sequence
+```java
+/**
+LRU has two properties: 
+1. maintain sequence -- FIFO,(array, linkedlist)
+2. quick search, giving specific key do the search(BST, Hashtable)
+We use a double linked list which enables us to quickly move nodes, because we need to move or add node one by one, and it is not suitabe to use array, so we use double linkedlist. Insert, remove, is O(1), randomly visit is O(n). which is different with array.
+we use hashtable of keys and double linked nodes to search
+ */
+public class LRUCache {
+    private Map<Integer, DLinkNode> cache;
+    DLinkNode tail = null;
+    DLinkNode head = null;
+    int capacity;
+
+    public LRUCache(int capacity) {
+        cache = new HashMap<Integer, DLinkNode>();
+        this.capacity = capacity;
+    }
+    
+    public int get(int key) {
+        if (cache.containsKey(key)) {
+            DLinkNode target = cache.get(key);
+            int value = target.value;
+            target.update();
+            return value;
+        } else return -1;
+    }
+    
+    public void set(int key, int value) {
+        if (cache.containsKey(key)) {
+            DLinkNode target = cache.get(key);
+            target.value = value;
+            target.update();
+        } else {
+            if (capacity == 0) return;
+            if (cache.size() == capacity) {
+                cache.remove(head.key);
+                head.removeFromHead();
+            }
+            DLinkNode newNode = new DLinkNode(key, value);
+            newNode.append();
+            cache.put(key, newNode);
+        }
+    }
+    
+    class DLinkNode {
+        int key;
+        int value;
+        DLinkNode left = null;
+        DLinkNode right = null;
+        public DLinkNode(int key, int value) {
+            this.key = key;
+            this.value = value;
+        }
+        // remove head from list and update head reference.
+        private void removeFromHead() {    
+            // if 'this' is the only node, set both head and tail to null.
+            if (tail == this) {             
+                head = null;
+                tail = null;
+            } else {
+                head = this.right;
+                head.left = null;
+            }
+        }
+        private void update() {
+            // no need to update if accessing the most revently used value.
+            if (tail == this) return;       
+            else { 
+                 // remove from current postion and update nodes (if any) on both sides.
+                if (this != head) {        
+                    this.left.right = this.right;
+                } else {
+                    head = this.right;
+                }
+                this.right.left = this.left;
+                 // append to tail.
+                this.append();             
+            }
+        }
+        private void append() {
+            // inserting the first node.
+            if (tail == null) {     
+                head = this;
+                tail = this;
+            // appned as tail and update tail reference.
+            } else {                
+                this.right = null;
+                this.left = tail;
+                tail.right =this;
+                tail = this; 
+            }
+        }
+    }
+}
+
+```
+### <a name="128"></a>128. Longest Consecutive Sequence
+```java
+//1.顺序不变 2. 不可拆开单词 3. 
+//改造 ["ab","cde","f"] --> "ab cde f"
+//count: how many char of the reformatted sentence is on the screen
+//count % length of reformatted sentence: the starting position of the next row
+//answer: count / len of reformatted sentence
+//time: O(row * word len), space: O(n)
+/*
+len = 8
+rows: 5, cols: 4
+ab cde f ab cde f ab cde f...
+xxx-
+   xxxx
+*/
+class Solution {
+    public int wordsTyping(String[] sentence, int rows, int cols) {
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < sentence.length; i++){
+            sb.append(sentence[i]);
+            sb.append(" ");
+        }
+        String s = sb.toString();
+        int len = s.length();
+        int count = 0;
+        for(int i = 0; i < rows; i++){
+            count += cols;
+            if(s.charAt((count % len)) == ' '){
+                count++;
+            }else{//可能在某个单词的中间
+                while(count > 0 && s.charAt(((count - 1) % len)) != ' '){
+                    count--;//后退直到碰到空格
+                }
+            }
+        }
+        return count / len;
+    }
+}
+
+```
+### <a name="547"></a>547. Friend Circles
+```java
+/*
+this is a graph problem, and represent in a matrix. we search every people in the row, and marked all the connected friends as "visited" and start from this person do  the depth first searching, find all the conected friend, these friends are a circle.
+
+Time complexity : O(n^2). The complete matrix of size n^2 is traversed.
+Space complexity : O(n). visited array of size n is used.
+*/
+public class Solution {
+    public void dfs(int[][] M, int[] visited, int i) {
+        for (int j = 0; j < M.length; j++) {
+            if (M[i][j] == 1 && visited[j] == 0) {
+                visited[j] = 1;
+                dfs(M, visited, j);
+            }
+        }
+    }
+    public int findCircleNum(int[][] M) {
+        int[] visited = new int[M.length];
+        int count = 0;
+        for (int i = 0; i < M.length; i++) {
+            if (visited[i] == 0) {
+                dfs(M, visited, i);
+                count++;
+            }
+        }
+        return count;
     }
 }
 
