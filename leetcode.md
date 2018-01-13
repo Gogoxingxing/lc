@@ -418,6 +418,14 @@ Given a string containing just the characters '(', ')', '{', '}', '[' and ']', d
 
 The brackets must close in the correct order, "()" and "()[]{}" are all valid but "(]" and "([)]" are not.
 ```
+- [32. Longest Valid Parentheses](#32) | [Leetcode](https://leetcode.com/problems/longest-valid-parentheses/solution/)
+```
+Given a string containing just the characters '(' and ')', find the length of the longest valid (well-formed) parentheses substring.
+
+For "(()", the longest valid parentheses substring is "()", which has length = 2.
+
+Another example is ")()())", where the longest valid parentheses substring is "()()", which has length = 4.
+```
 
 - [5. Longest Palindromic Substring](#5) | [Leetcode](https://leetcode.com/problems/longest-palindromic-substring/description/)
 ```
@@ -574,6 +582,18 @@ Given nums = [2, 7, 11, 15], target = 9,
 
 Because nums[0] + nums[1] = 2 + 7 = 9,
 return [0, 1].
+```
+- [290. Word Pattern](#290) | [Leetcode](https://leetcode.com/problems/word-pattern/description/)
+```
+Given a pattern and a string str, find if str follows the same pattern.
+
+Here follow means a full match, such that there is a bijection between a letter in pattern and a non-empty word in str.
+
+Examples:
+pattern = "abba", str = "dog cat cat dog" should return true.
+pattern = "abba", str = "dog cat cat fish" should return false.
+pattern = "aaaa", str = "dog cat cat dog" should return false.
+pattern = "abba", str = "dog dog dog dog" should return false.
 ```
 
 - [554. Brick Wall](#554) | [Leetcode](https://leetcode.com/problems/brick-wall/description/)
@@ -2808,6 +2828,9 @@ class Solution {
 
 ### <a name="14"></a>14. Longest Common Prefix
 ```java
+/*
+first set commonprefix as the first element, if the following strings do not have this commonprefix, we reduce the length of current commonprefix until we have a match.
+*/
 // O(n * K^2) n: strs.length, K: average length of elements in strs
 class Solution {
     public String longestCommonPrefix(String[] strs) {
@@ -3025,56 +3048,66 @@ class Solution {
 
 ### <a name="381"></a>381. Insert Delete GetRandom O(1) - Duplicates allowed
 ```java
+/*
+using arraylist to store insert value, hashmap to map element to index, because there maybe duplicates, therefore, the value of map should be a set
+*/
+
 class RandomizedCollection {
-    private Random random;
-    private List<Integer> values;
-    private Map<Integer, Set<Integer>> locationMap;
-    
-    /** Initialize your data structure here. */
+      /** Initialize your data structure here. */
     public RandomizedCollection() {
-        random = new Random();
-        values = new ArrayList<>();
-        locationMap = new HashMap<>();
+        
     }
-    
+    List<Integer> vals = new ArrayList<Integer>();
+	Map<Integer, Set<Integer>> val2idx = new HashMap<Integer, Set<Integer>>();
+
     /** Inserts a value to the collection. Returns true if the collection did not already contain the specified element. */
     public boolean insert(int val) {
-        boolean exist = locationMap.containsKey(val);
-        Set<Integer> locations = locationMap.getOrDefault(val, new HashSet<>());
-        locations.add(values.size());
-        locationMap.put(val, locations);
-        values.add(val);
-        
-        return !exist;
+        boolean flag = false;
+        Set<Integer> idxs = null;
+        if (val2idx.containsKey(val)) {
+            idxs = val2idx.get(val);
+			flag=false;
+		} else {
+		    idxs = new HashSet<Integer>();
+			flag=true;
+		}
+		idxs.add(vals.size());
+        vals.add(val);
+        val2idx.put(val,idxs);
+		return flag;
     }
     
     /** Removes a value from the collection. Returns true if the collection contained the specified element. */
     public boolean remove(int val) {
-        if (!locationMap.containsKey(val) || locationMap.get(val).size() == 0) {
-            return false;
-        }
-        Set<Integer> locations = locationMap.get(val);
-        // Get arbitary index of the ArrayList that contains val
-        int index = locations.iterator().next();
-        locations.remove(index);
-        locationMap.put(val, locations);
-        
-        int replacedValue = values.remove(values.size() - 1);
-        if (index != values.size()) {
-            values.set(index, replacedValue);
-            Set<Integer> replacedLocations = locationMap.get(replacedValue);
-            replacedLocations.remove(values.size());
-            replacedLocations.add(index);
-            locationMap.put(replacedValue, replacedLocations);
-        }
-        
-        return true;
+        if (!val2idx.containsKey(val)) {
+			return false;
+		} else {
+		    Set<Integer> rmIdxs = val2idx.get(val);
+		    int rmIdx = rmIdxs.iterator().next();//被删除元素的下标
+			if (rmIdx < vals.size() - 1&&val!=vals.get(vals.size()-1)) {//若刪除的不是末尾元素，且被刪除元素不等于末尾元素（若相等的话就当做删除末尾
+				// 将末尾元素存入被删除元素的位置，并更新相应下标
+				int lastElem = vals.get(vals.size() - 1);//末尾元素
+				Set<Integer> lastElemIdxs = val2idx.get(lastElem);//末尾元素的index集合
+				lastElemIdxs.remove(vals.size()-1);
+				lastElemIdxs.add(rmIdx);
+				vals.set(rmIdx,lastElem);
+				val2idx.put(lastElem,lastElemIdxs);
+			}
+			rmIdxs.remove(rmIdx);
+			if(rmIdxs.size()==0){
+				val2idx.remove(val);
+			}else{
+				val2idx.put(val,rmIdxs);
+			}
+			vals.remove(vals.size() - 1);
+			return true;
+		}
     }
     
-    /** Get a random element from the collection. */
-    public int getRandom() {
-        return values.get(random.nextInt(values.size()));
-    }
+   	Random r = new Random();
+	public int getRandom() {
+		return vals.get(r.nextInt(vals.size()));
+	}
 }
 
 /**
@@ -3088,10 +3121,15 @@ class RandomizedCollection {
 
 ### <a name="380"></a>380. Insert Delete GetRandom O(1)
 ```java
+/*
+解释：
+because need to do the operation in constant time, therefore, I will use a arraylist and hashmap to solve this problem. arraylist to record each value we do the insert operation. because the delete operation of hashmap is O(1) while arraylist is not constant time, therefore, inorder to make the delete is also constant time, we need to exchange the position of the number need to be deleted with the last number of list, then change the corresponding value in hashmap. therefore we only need to delete the last element of list.
+*/
 class RandomizedSet {
     private Random random;
-    private Map<Integer, Integer> locationMap;
-    private List<Integer> values;
+    private Map<Integer, Integer> locationMap;//used to build mapping between each number and it position in the arraylist
+
+    private List<Integer> values;//store value
     /** Initialize your data structure here. */
     public RandomizedSet() {
         this.random = new Random();
@@ -3104,6 +3142,7 @@ class RandomizedSet {
         if (locationMap.containsKey(val)) {
             return false;
         }
+        //if it is not in the map, we insert it into the end of list, and build mapping relation
         locationMap.put(val, values.size());
         values.add(val);
         return true;
@@ -3114,10 +3153,12 @@ class RandomizedSet {
         if (!locationMap.containsKey(val)) {
             return false;
         }
-        int index = locationMap.remove(val);
+        
+        //将要删除的数字和数组的最后一个数字调换个位置，然后修改对应的哈希表中的值，这样我们只需要删除数组的最后一个元素即可，保证了常数时间内的删除。
+        int index = locationMap.remove(val); //return 
         int replacedValue = values.remove(values.size() - 1);
         
-        if (index != values.size()) {
+        if (index != values.size()) {//means that the list still have value, so we need to update the
             locationMap.put(replacedValue, index);
             values.set(index, replacedValue);
         }
@@ -6701,27 +6742,29 @@ class Solution {
 ### <a name="17"></a>17. Letter Combinations of a Phone Number
 ```java
 // O(k^n) k: average length of KEYS
+/*
+Using backtracking to solve this problem. The terminateend condition when the current index is the index equals the length of input digits, which means we already reached the end of the input phone number. For example, if the input is “23” -- “def””ghi”, we start from “2” -- d, “3” -- “g””h””i” , return back to previous level, then we goes to the 2 -- “e”, 3 -- “g””h””i”, then “f”..
+
+*/
 class Solution {
-    String [] mapping = new String [] {"0", "1", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
-    
+    String[] map = new String[]{"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
     public List<String> letterCombinations(String digits) {
-        if (digits == null || digits.length() == 0) return new ArrayList<String>();
-        return findCombinations(digits, 0);
+        List<String> res = new ArrayList<>();
+        if(digits == null || digits.length() == 0){
+            return res;
+        }
+        helper(res, digits, "", 0);
+        return res;
     }
-    
-    public List<String> findCombinations(String digits, int index) {
-        List<String> combinations = new ArrayList<>();
-        if (index == digits.length()) {
-            combinations.add("");
-            return combinations;
+    private void helper(List<String> res, String digits, String item, int index){
+      if(index >= digits.length()){
+          res.add(new String(item));
+          return;
+      }
+        String letter = map[digits.charAt(index) - '0'];
+        for(int i = 0; i < letter.length(); i++){
+            helper(res, digits, item + letter.charAt(i), index + 1);
         }
-        List<String> subCombinations = findCombinations(digits, index + 1);
-        for (char c : mapping[digits.charAt(index) - '0'].toCharArray()) {
-            for (String s : subCombinations) {
-                combinations.add(String.valueOf(c) + s);
-            }
-        }
-        return combinations;
     }
 }
 // iteration, Queue
@@ -9085,6 +9128,14 @@ public class Solution {
 ### <a name="273"></a> 273. Integer to English Words
 ```java
 // 273. Integer to English Words
+/*
+Group the number by thousands (3 digits), and highest should be "billion", so we just need to process 4 groups
+set three translation arrays to seperately store 1-9; 10-19; 20,30,40..90
+use a helper function to deal with the group number
+for example if we have number N with 3 digits, then the Hundred digits should be n/100, last two digis should be n%100
+tenth digit should be n%100/10, last digit should be n%100%10, then we check whether the last two digits smaller than 20 or not
+then pick them from the translation array.
+*/
 class Solution {
     private final String[] LESS_THAN_20 = {"", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"};
     private final String[] TENS = {"", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"};
@@ -9099,9 +9150,9 @@ class Solution {
                 result = helper(num % 1000) + THOUSANDS[i] + " " + result;
             }
             i ++;
-            num = num / 1000;
+            num = num / 1000;//check if the current number is bigger than 1000 or not.
         }
-        return result.trim();
+        return result.trim();//check if there is a space at last, if yes, delete the space
     }
     
     public String helper(int num) {
@@ -9915,4 +9966,133 @@ public class Solution {
     }
 }
 
+```
+### <a name="290"></a>290. Word Pattern
+```java
+/*
+use two map to store the mapping between pattern and give string, if map1 already have the relation of current pattern, then we need to check if the pattern match to this character.
+for example:
+map1 ----- (a, cat)
+map2 ----- (cat, a)
+
+aa
+cat dog
+already have a in map1, but cat != dog return false;
+
+ab
+cat cat
+already do not have b in map1, but map2 have (b, cat) which is a mismatch so return false;
+*/
+public boolean wordPattern(String pattern, String str) {
+    String[] strs = str.split(" ");
+    
+    if(pattern.length() != strs.length) return false;
+    
+    HashMap<Character, String> hm1 = new HashMap<Character, String>();
+    HashMap<String, Character> hm2 = new HashMap<String, Character>();
+    for(int i=0; i<pattern.length(); ++i) {
+        if(hm1.containsKey(pattern.charAt(i))) {
+            if(!hm1.get(pattern.charAt(i)).equals(strs[i])) return false;
+        }
+        else {
+            if(hm2.containsKey(strs[i])) return false;
+            else {
+                hm1.put(pattern.charAt(i), strs[i]);
+                hm2.put(strs[i], pattern.charAt(i));
+            }
+        }
+    }
+    
+    return true;
+}
+
+```
+### <a name="32"></a>32. Longest Valid Parentheses
+```java
+/*
+Instead of finding every possible string and checking its validity, we can make use of stack while scanning the given string to check if the string scanned so far is valid, and also the length of the longest valid string. In order to do so, we start by pushing -1 onto the stack.
+
+For every ‘(’ encountered, we push its index onto the stack.
+
+For every ‘)’ encountered, we pop the topmost element and subtract the current element's index from the top element of the stack, which gives the length of the currently encountered valid string of parentheses. If while popping the element, the stack becomes empty, we push the current element's index onto the stack. In this way, we keep on calculating the lengths of the valid substrings, and return the length of the longest valid string at the end.
+
+time:O(n), space: O(n)
+
+test case:
+0 1 2 3 4 5 6 7
+( ) ) ( ( ( ) )
+stack: -1
+       -1 0
+       -1        maxLen = 1-(-1) = 2
+       空
+       2
+       2 3
+       2 3 4
+       2 3 4 5
+       2 3 4  maxLen = 6 - 4 = 2
+       2 3    maxLen = 7 - 3 = 4
+*/
+public class Solution {
+
+    public int longestValidParentheses(String s) {
+        int maxans = 0;
+        Stack<Integer> stack = new Stack<>();
+        stack.push(-1);
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '(') {
+                stack.push(i);
+            } else {
+                stack.pop();
+                if (stack.empty()) {
+                    stack.push(i);
+                } else {
+                    maxans = Math.max(maxans, i - stack.peek());
+                }
+            }
+        }
+        return maxans;
+    }
+}
+```
+### <a name="418"></a>418. Sentence Screen Fitting
+```java
+/*
+//1.顺序不变 2. 不可拆开单词 3. 
+//改造 ["ab","cde","f"] --> "ab cde f"
+//count: how many char of the reformatted sentence is on the screen
+//count % length of reformatted sentence: the starting position of the next row
+//answer: count / len of reformatted sentence
+//time: O(row * word len), space: O(n)
+/*
+len = 8
+rows: 5, cols: 4
+ab cde f ab cde f ab cde f...
+xxx-
+   xxxx
+       xxxx
+           xxxx
+*/
+class Solution {
+    public int wordsTyping(String[] sentence, int rows, int cols) {
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < sentence.length; i++){
+            sb.append(sentence[i]);
+            sb.append(" ");
+        }
+        String s = sb.toString();
+        int len = s.length();
+        int count = 0;
+        for(int i = 0; i < rows; i++){
+            count += cols;
+            if(s.charAt((count % len)) == ' '){
+                count++;
+            }else{//可能在某个单词的中间
+                while(count > 0 && s.charAt(((count - 1) % len)) != ' '){
+                    count--;//后退直到碰到空格
+                }
+            }
+        }
+        return count / len;
+    }
+}
 ```
