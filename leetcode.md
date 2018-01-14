@@ -5807,8 +5807,8 @@ public int findKthLargest(int[] nums, int k) {
 ```java
 // use minHeap and map. 
 // map, key is the number, value is frequency
-// Put map entry into maxHeap so we can always poll a number with largest frequency
-// O(nlogK)
+// Put map entry into minHeap so we can always poll a number with minimum frequency
+// O(nlogK) n is length of words
 class Solution {
     public List<String> topKFrequent(String[] words, int k) {
         List<String> result = new ArrayList<>();
@@ -5816,7 +5816,7 @@ class Solution {
         for (String word : words) {
             hm.put(word, hm.getOrDefault(word, 0) + 1);
         }
-        
+        //if two words have same freq, I will follow the alphabetical order, and that comes first.
         PriorityQueue<Map.Entry<String, Integer>> pq = new PriorityQueue<>((a, b) -> (a.getValue() == b.getValue()) ? b.getKey().compareTo(a.getKey()) : a.getValue() - b.getValue());
         // or max heap , set size to k
         for(Map.Entry<String, Integer> entry: hm.entrySet()) {
@@ -5824,10 +5824,10 @@ class Solution {
             if(pq.size()>k)
                 pq.poll();
         }
-        
         while (!pq.isEmpty()) {
             result.add(pq.poll().getKey());
         } 
+        //because we used minHeap, so if we want to output order from large to small, we need to reverse
         Collections.reverse(result);
         return result;
     }
