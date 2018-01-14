@@ -1599,6 +1599,19 @@ return 13.
 
 
 ## BACK TRACKING
+- [1002. Yelp-Movie](#1002)
+```
+/*
+给定一组电影和他的开始时间，假设都是1小时，返回一个电影日程表（不会时间冲突）。
+输入：
+Movie("Shining", [14, 15, 16])
+Movie("Baby driver", [14, 15])
+Movie("Pulp fiction", [14, 15])
+ */
+
+```
+
+
 - [93. Restore IP Addresses](#93) | [Leetcode](https://leetcode.com/problems/restore-ip-addresses/description/) [Discussion tricy solution](https://leetcode.com/problems/restore-ip-addresses/discuss/30949)
 ```
 Given a string containing only digits, restore it by returning all possible valid IP address combinations.
@@ -10221,4 +10234,64 @@ class Solution {
         return res;
     }
 }
+```
+### <a name="1002"></a>1002 yelp-Movie
+```java
+import java.util.*;
+public class Movie {
+    class MoviePlay{
+        String name;
+        int time;
+
+        public MoviePlay(String name, int time){
+            this.name = name;
+            this.time = time;
+        }
+
+        public String toString(){
+            return name + ":" + time;
+        }
+    }
+    public List<MoviePlay> arrange(Map<String, List<Integer>> movies) throws Exception{
+        List<MoviePlay> rlt = new ArrayList<>();
+        if(helper(rlt, new HashSet<>(), movies, new ArrayList<>(movies.keySet()), 0)) return rlt;
+        throw new Exception("No valid arrangement");
+    }
+
+    public boolean helper(List<MoviePlay> rlt, Set<Integer> timeTaken, Map<String, List<Integer>> times, List<String> movieList, int index){
+        if(index == movieList.size()) return true;
+        String movie = movieList.get(index);
+        List<Integer> playtime = times.get(movie);
+        for(Integer time: playtime){
+            if(!timeTaken.contains(time)){
+                timeTaken.add(time);
+                rlt.add(new MoviePlay(movie, time));
+                if(helper(rlt, timeTaken, times, movieList, index + 1)) return true;
+                rlt.remove(rlt.size()-1);
+                timeTaken.remove(time);
+            }
+        }
+        return false;
+    }
+
+    public static void main(String[] args){
+        Map<String, List<Integer>> movies = new HashMap<>();
+        movies.put("A", new ArrayList());
+        movies.put("B", new ArrayList());
+        movies.put("C", new ArrayList());
+        movies.put("D", new ArrayList());
+        movies.get("A").addAll(Arrays.asList(14, 15, 16, 17));
+        movies.get("B").addAll(Arrays.asList(14, 15));
+        movies.get("C").addAll(Arrays.asList(14, 15));
+        movies.get("D").addAll(Arrays.asList(14, 15, 16, 17));
+        Movie m = new Movie();
+        try{
+            List<MoviePlay> rlt = m.arrange(movies);
+            System.out.println(rlt);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+}
+
 ```
