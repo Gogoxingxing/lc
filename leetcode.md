@@ -1030,6 +1030,23 @@ return 2.
 ```
 
 ## GRAPH
+- [332. Reconstruct Itinerary](#332) | [Leetcode](https://leetcode.com/problems/reconstruct-itinerary/discuss/78799)
+```
+Given a list of airline tickets represented by pairs of departure and arrival airports [from, to], reconstruct the itinerary in order. All of the tickets belong to a man who departs from JFK. Thus, the itinerary must begin with JFK.
+
+Note:
+If there are multiple valid itineraries, you should return the itinerary that has the smallest lexical order when read as a single string. For example, the itinerary ["JFK", "LGA"] has a smaller lexical order than ["JFK", "LGB"].
+All airports are represented by three capital letters (IATA code).
+You may assume all tickets form at least one valid itinerary.
+Example 1:
+tickets = [["MUC", "LHR"], ["JFK", "MUC"], ["SFO", "SJC"], ["LHR", "SFO"]]
+Return ["JFK", "MUC", "LHR", "SFO", "SJC"].
+Example 2:
+tickets = [["JFK","SFO"],["JFK","ATL"],["SFO","ATL"],["ATL","JFK"],["ATL","SFO"]]
+Return ["JFK","ATL","JFK","SFO","ATL","SFO"].
+Another possible reconstruction is ["JFK","SFO","ATL","JFK","ATL","SFO"]. But it is larger in lexical order.
+```
+
 - [547. Friend Circles](#547) | [Leetcode](https://leetcode.com/problems/friend-circles/description/)
 ```
 There are N students in a class. Some of them are friends, while some are not. Their friendship is transitive in nature. For example, if A is a direct friend of B, and B is a direct friend of C, then A is an indirect friend of C. And we defined a friend circle is a group of students who are direct or indirect friends.
@@ -7333,6 +7350,12 @@ else
 ```
 ```java
 // BFS Topological sort
+/*
+because topological sort usually used to determine the sequence of things which have dependency with each other. And topological sort have two condition: directed and acyclic. 
+we need to find all the nodes whose indegree is 0, put them into sequence, and delete these nodes and edge which start from these nodes
+check whether have loop or not, if there are remained nodes, which means it have cycle.
+and in this question, after we applying topological sort, if there is remaining courses, which means cannot finish the course.
+*/
    public boolean canFinish(int numCourses, int[][] prerequisites) {
         if (null == prerequisites || numCourses == 0 || prerequisites.length == 0) {
                 return true;
@@ -7344,13 +7367,14 @@ else
             for (int[] prerequisite : prerequisites) {
                 preCourses[prerequisite[0]]++;
             }
-        //add all courses which do not have any prerequist course
+        //add all courses which do not have any prerequist course into queue
             Queue<Integer> queue = new LinkedList<Integer>();
             for (int i = 0; i < preCourses.length; i++) {
                 if (preCourses[i] == 0) {
                     queue.add(i);
                 }
             }
+            //try to find these nodes postCourses and update their in-degree.
             int remaining = numCourses;
             while (!queue.isEmpty()) {
                 int top = queue.poll();
@@ -7372,7 +7396,7 @@ else
 ### <a name="210"></a>210. Course Schedule II
 ```java
 /*
-Basic idea is to build a graph,  the node is every courses, and if they have relation, we add edge between them. And in  a valid graph, there should be one node which in-degree is 0 which means it has no prerequisite course, so we start from this course then using Breadth First Search find the sequence of taking courses.
+Basic idea is to build a graph,  the node is every courses, and if they have relation, we add edge between them. And in  a valid graph, there should be one node which in-degree is 0, this means it has no prerequisite course, so we start from this course then using Breadth First Search find the sequence of taking courses. And finally we also need to check if we have taken all the courses or not, if not, which means have circle in the graph, and it is impossible to take all courses.
 */
 class Solution {
     public int[] findOrder(int numCourses, int[][] prerequisites) {
@@ -10093,6 +10117,112 @@ class Solution {
             }
         }
         return count / len;
+    }
+}
+```
+### <a name="332"></a>332. Reconstruct Itinerary
+```java
+/*
+In this problem, the path we are going to find is an itinerary which:
+1. uses all tickets to travel among airports
+2. preferably in ascending lexical order of airport code
+think about the “backtracking” feature of DFS. We start by building a graph and then sorting vertices in the adjacency list so that when we traverse the graph later, we can guarantee the lexical order of the itinerary can be as good as possible. When we have generated an itinerary, we check if we have used all our airline tickets. If not, we revert the change and try another ticket. We keep trying until we have used all our tickets.
+*/
+public class Solution {
+    private HashMap<String, List<String>> adjList = new HashMap<>();
+    private LinkedList<String> route = new LinkedList<>();
+    private int numTickets = 0;
+    private int numTicketsUsed = 0;
+    
+    public List<String> findItinerary(String[][] tickets) {
+        if (tickets == null || tickets.length == 0) return route;
+        // build graph
+        numTickets = tickets.length;
+        for (int i = 0; i < tickets.length; ++i) {
+            if (!adjList.containsKey(tickets[i][0])) {
+                // create a new list
+                List<String> list = new ArrayList<>();
+                list.add(tickets[i][1]);
+                adjList.put(tickets[i][0], list);
+            } else {
+                // add to existing list
+                adjList.get(tickets[i][0]).add(tickets[i][1]);
+            }
+        }
+        // sort vertices in the adjacency list so they appear in lexical order
+        for (Map.Entry<String, List<String>> entry : adjList.entrySet()) {
+            Collections.sort(entry.getValue());
+        }
+        
+        // start DFS
+        route.add("JFK");
+        dfsRoute("JFK");
+        return route;
+    }
+    
+    private void dfsRoute(String v) {
+        // base case: vertex v is not in adjacency list
+        // v is not a starting point in any itinerary, or we would have stored it
+        // thus we have reached end point in our DFS
+        if (!adjList.containsKey(v)) return;
+        List<String> list = adjList.get(v);
+        for (int i = 0; i < list.size(); ++i) {
+            String neighbor = list.get(i);
+            // remove ticket(route) from graph
+            list.remove(i);
+            route.add(neighbor);
+            numTicketsUsed++;
+            dfsRoute(neighbor);
+            // we only return when we have used all tickets
+            if (numTickets == numTicketsUsed) return;
+            // otherwise we need to revert the changes and try other tickets
+            list.add(i, neighbor);
+            // This line took me a long time to debug
+            // we must remove the last airport, since in an itinerary, the same airport can appear many times!!
+            route.removeLast();
+            numTicketsUsed--;
+        }
+    }
+}
+/*
+起点终点肯定不一样且不确定
+*/
+class Solution {
+    public List<String> findItinerary(String[][] tickets) {
+        Map<String, String> f2t = new HashMap<>();
+        Set<String> end = new HashSet<String>();
+        List<String> res = new ArrayList<>();
+        if(tickets == null || tickets.length == 0){
+            return res;   
+        }
+        for(int i = 0; i < tickets.length; i++){
+            f2t.put(tickets[i][0], tickets[i][1]);
+            end.add(tickets[i][1]);
+        }
+        String from = "";
+        for(String str : f2t.keySet()){
+            if(!end.contains(str)){
+                from = str;
+                break;
+            }
+        }
+        boolean[] visited = new boolean[tickets.length];
+        Queue<String> queue = new LinkedList<>();
+        queue.offer(from);
+        while(!queue.isEmpty()){
+            String cur = queue.poll();
+            res.add(cur);
+            for(int i = 0; i < tickets.length; i++){
+                if(!visited[i] && tickets[i][0].equals(cur)){
+                    visited[i] = true;
+                    String next = f2t.get(cur);
+                    queue.offer(next);
+                    break;
+                }
+            }
+        }
+        //res.remove(res.size() - 1);
+        return res;
     }
 }
 ```
