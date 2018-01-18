@@ -9766,6 +9766,8 @@ class Solution {
 /**
 use row as the list iterator, use vector as the List<List<>> iterator, everytime we call hasnext before next let j find a not empty list then return next.
  */
+
+import java.util.*;
 public class Vector2D implements Iterator<Integer> {
     Iterator<List<Integer>> vector;
     Iterator<Integer> row;
@@ -9785,6 +9787,15 @@ public class Vector2D implements Iterator<Integer> {
             row = vector.next().iterator();
         }
         return row != null && row.hasNext();
+    }
+    public static void main(String[] args){
+        List<Integer> a1 = Arrays.asList(1,2,3);
+        List<Integer> a2 = Arrays.asList(4,5);
+        List<List<Integer>> vec2d = Arrays.asList(a1,a2);
+        Vector2D i = new Vector2D(vec2d);
+        while (i.hasNext()){
+            System.out.print(i.next());
+        }
     }
 }
 
