@@ -1128,6 +1128,43 @@ Note: you can assume that no duplicate edges will appear in edges. Since all edg
 
 
 ## ARRAY
+- [300. Longest increasing Subsequence](#300) | [Leetcode](https://leetcode.com/problems/longest-increasing-subsequence/description/)
+```
+Given an unsorted array of integers, find the length of longest increasing subsequence.
+
+For example,
+Given [10, 9, 2, 5, 3, 7, 101, 18],
+The longest increasing subsequence is [2, 3, 7, 101], therefore the length is 4. Note that there may be more than one LIS combination, it is only necessary for you to return the length.
+
+Your algorithm should run in O(n2) complexity.
+
+Follow up: Could you improve it to O(n log n) time complexity?
+```
+
+- [525. Continuous Array](#525) | [Leetcode](https://leetcode.com/problems/contiguous-array/description/)
+```
+Given a binary array, find the maximum length of a contiguous subarray with equal number of 0 and 1.
+
+Example 1:
+Input: [0,1]
+Output: 2
+Explanation: [0, 1] is the longest contiguous subarray with equal number of 0 and 1.
+Example 2:
+Input: [0,1,0]
+Output: 2
+Explanation: [0, 1] (or [1, 0]) is a longest contiguous subarray with equal number of 0 and 1.
+```
+- [674. Longest Continuous Increasing Subsequence](#674) | [Leetcode](https://leetcode.com/problems/longest-continuous-increasing-subsequence/description/)
+```
+Given an unsorted array of integers, find the length of longest continuous increasing subsequence (subarray).
+
+Example 1:
+Input: [1,3,5,4,7]
+Output: 3
+Explanation: The longest continuous increasing subsequence is [1,3,5], its length is 3. 
+Even though [1,3,5,7] is also an increasing subsequence, it's not a continuous one where 5 and 7 are separated by 4. 
+```
+
 - [128. Longest Consecutive Sequence](#128) | [Leetcode](https://leetcode.com/problems/longest-consecutive-sequence/description/)
 ```
 Given an unsorted array of integers, find the length of the longest consecutive elements sequence.
@@ -1356,6 +1393,20 @@ In this case, no transaction is done, i.e. max profit = 0.
 Say you have an array for which the ith element is the price of a given stock on day i.
 
 Design an algorithm to find the maximum profit. You may complete as many transactions as you like (ie, buy one and sell one share of the stock multiple times). However, you may not engage in multiple transactions at the same time (ie, you must sell the stock before you buy again).
+```
+- [309. Best Time to Buy and Sell Stock with Cooldown](#309) | [Leetcode](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/description/)
+```
+Say you have an array for which the ith element is the price of a given stock on day i.
+
+Design an algorithm to find the maximum profit. You may complete as many transactions as you like (ie, buy one and sell one share of the stock multiple times) with the following restrictions:
+
+You may not engage in multiple transactions at the same time (ie, you must sell the stock before you buy again).
+After you sell your stock, you cannot buy stock on next day. (ie, cooldown 1 day)
+Example:
+
+prices = [1, 2, 3, 0, 2]
+maxProfit = 3
+transactions = [buy, sell, cooldown, buy, sell]
 ```
 
 - [120. Triangle](#120) | [Leetcode](https://leetcode.com/problems/triangle/description/) | [Discussion](https://discuss.leetcode.com/topic/1669/dp-solution-for-triangle)
@@ -7157,33 +7208,40 @@ class Solution {
 
 ### <a name="33"></a>33. Search in Rotated Sorted Array
 ```java
-// O(logN)
+//basic idea is to set start and end pointer, using binary search in the interval which is sequencial
+//time: O(logn)
 class Solution {
     public int search(int[] nums, int target) {
-        if (nums == null || nums.length == 0) return -1;
-        int start = 0;
-        int end = nums.length -1;
-        while (start < end) {
-            int middle = start + (end - start) / 2;
-            if (nums[middle] == target) return middle;
-            
-            if (nums[middle] < nums[end]) { //6780 1 2345
-                if (target > nums[middle] && target <= nums[end]) {
-                    start = middle + 1;
-                } else {
-                    end = middle - 1;
+        if(nums == null || nums.length == 0){
+            return -1;
+        }
+        int s = 0;
+        int e = nums.length - 1;
+        //search in the [s,e]
+        while(s <= e){
+            int mid = s + (e - s)/2;
+            if(nums[mid] == target){
+                return mid;
+            }
+            if(nums[mid] >= nums[s]){ //which means this part[s,mid] is sequencial and we can search in this interval
+                if(target < nums[mid] && target >= nums[s]){
+                    e = mid - 1;
+                }else {
+                    s = mid + 1;
                 }
-            } else { // 2345601
-                if (target < nums[middle] && target >= nums[start]) {
-                    end = middle - 1;
-                } else {
-                    start = middle + 1;
+            }
+            if(nums[mid] <= nums[e]){
+                if(target > nums[mid] && target <= nums[e]){
+                    s = mid + 1;
+                }else{
+                    e = mid - 1;
                 }
             }
         }
-        return (nums[start] == target) ? start : -1;
+        return -1;
     }
 }
+
 ```
 
 ### <a name="277"></a>277. Find the Celebrity
@@ -8878,6 +8936,15 @@ class Solution {
 
 ### <a name="173"></a>173. Binary Search Tree Iterator
 ```java
+/*
+use stack to store directed left children from root
+when next() been called, i just pop one element and process its right child as new root
+
+hasNext() in O(1) time
+next() in O(h) time
+
+*/
+
 /**
  * Definition for binary tree
  * public class TreeNode {
@@ -10292,6 +10359,140 @@ public class Movie {
             e.printStackTrace();
         }
     }
+}
+
+```
+### <a name="309"></a>309 best time to buy and sell stock with cooldown
+```java
+/*
+price 当前的价格
+buy[i] = max(buy[i - 1], rest[i - 1] - price)
+sell[i] = max(buy[i - 1] + price, sell[i - 1])
+rest[i] = max(sell[i - 1], buy[i - 1], rest[i - 1]) --》 买东西花钱 所以可以化简为：max(sell[i - 1], rest[i - 1])
+由于冷冻期存在 所以rest[i] = sell[i-1]
+故 buy[i] = max(buy[i-1], sell[i-2] - price)
+sell[i] = max(buy[i-1]+price, sell[i-1])
+*/
+class Solution {
+    public int maxProfit(int[] prices) {
+        int maxPro = 0;
+        int sell = 0, preSell = 0;
+        int buy = Integer.MIN_VALUE, preBuy = 0;
+        for(int price : prices){
+            preBuy = buy;
+            buy = Math.max(preBuy, preSell - price);
+            preSell = sell;
+            sell = Math.max(preBuy + price, preSell);
+        }
+        return sell;
+    }
+}
+```
+### <a name="525"></a>525. Continuous Array 
+```java
+/*
+The idea is to change 0 in the original array to -1. 
+Thus, if we find SUM[i, j] == 0
+then we know there are even number of -1 and 1 between index i and j. 
+Also put the sum to index mapping to a HashMap to make search faster.
+time:O(n) Presum + HashMap
+*/
+class Solution{
+    public int findMaxLength(int[] nums){
+        int maxLen = 0;
+        if(nums == null || nums.length == 0){
+            return maxLen;
+        }
+        int sum = 0;
+        Map<Integer, Integer> map = new HashMap<>();
+        for(int i = 0; i < nums.length; i++){
+            if(nums[i] == 0){
+                nums[i] = -1;
+            }
+            sum += nums[i];
+            if(sum == 0) maxLen = i + 1;
+            //说明这里和前面某一个地方的和相同，那么他们之间的和为0
+            if(map.containsKey(sum)){
+                maxLen = Math.max(maxLen, i - map.get(sum));
+            }
+            if(!map.containsKey(sum)){
+                map.put(sum, i);
+            }
+        }
+        return maxLen;
+    }
+}
+```
+### <a name="674"></a>674. Longest Continuous Increasing Subsequence
+```java
+/*
+
+*/
+class Solution {
+    public int findLengthOfLCIS(int[] nums) {
+        if(nums == null || nums.length == 0){
+            return 0;
+        }
+        int cnt = 0;
+        int max = 0;
+        for(int i = 0; i < nums.length; i++){
+            if(i == 0 || nums[i - 1] < nums[i]){
+                cnt++;
+                max = Math.max(max, cnt);
+            }else{
+                cnt = 1;
+            }
+        }
+        return max;
+    }
+}
+```
+### <a name="300"></a>300. Longest increasing Subsequence
+```java
+/*
+We make use of a dp array to store the required data. dp[i]  represents the length of the longest increasing subsequence possible considering the array elements upto the i index only ,by necessarily including the i element. In order to find out dp[i], we need to try to append the current element(nums[i]) in every possible increasing subsequences upto the (i-1) index(including the (i-1) index), such that the new sequence formed by adding the current element is also an increasing subsequence. Thus, we can easily determine dp[i] using:
+dp[i] = max(dp[j]) + 1 where 0 <= j < i
+*/
+public class Solution {
+    public int lengthOfLIS(int[] nums) {
+        if (nums.length == 0) {
+            return 0;
+        }
+        int[] dp = new int[nums.length];
+        dp[0] = 1;
+        int maxans = 1;
+        for (int i = 1; i < dp.length; i++) {
+            int maxval = 0;
+            for (int j = 0; j < i; j++) {
+                if (nums[i] > nums[j]) {
+                    maxval = Math.max(maxval, dp[j]);
+                }
+            }
+            dp[i] = maxval + 1;
+            maxans = Math.max(maxans, dp[i]);
+        }
+        return maxans;
+    }
+}
+
+//O(nlogn)
+// The idea is that as we iterate the sequence, we keep track of the minimum value a subsequence of given length might end with, for all so far possible subsequence lengths. So dp[i] is the minimum value a subsequence of length i+1 might end with. 
+// Having this info, for each new number we iterate to, we can determine the longest subsequence where it can be appended using binary search. 
+// The final answer is the length of the longest subsequence we found so far.
+public int lengthOfLIS(int[] nums){
+	int dp[] = new int[nums.length];
+	int len = 0;
+	for(int n : nums){
+		int i = Arrays.binarySearch(dp, 0, len, n);
+		if(i < 0){
+			i = -(i + 1);
+		}
+		dp[i] = n;
+		if(i == len){
+			len++;
+		}
+	}
+	return len;
 }
 
 ```
