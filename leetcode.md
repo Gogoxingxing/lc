@@ -71,6 +71,38 @@ F F F
 T F F
 F F T
 ```
+- [362. Design Hit Counter](#362) | [Leetcode](https://leetcode.com/problems/design-hit-counter/description/) 
+```
+Design a hit counter which counts the number of hits received in the past 5 minutes.
+
+Each function accepts a timestamp parameter (in seconds granularity) and you may assume that calls are being made to the system in chronological order (ie, the timestamp is monotonically increasing). You may assume that the earliest timestamp starts at 1.
+
+It is possible that several hits arrive roughly at the same time.
+
+Example:
+HitCounter counter = new HitCounter();
+
+// hit at timestamp 1.
+counter.hit(1);
+
+// hit at timestamp 2.
+counter.hit(2);
+
+// hit at timestamp 3.
+counter.hit(3);
+
+// get hits at timestamp 4, should return 3.
+counter.getHits(4);
+
+// hit at timestamp 300.
+counter.hit(300);
+
+// get hits at timestamp 300, should return 4.
+counter.getHits(300);
+
+// get hits at timestamp 301, should return 3.
+counter.getHits(301); 
+```
 
 - [251. Flatten 2D Vector](#251) | [Leetcode](https://leetcode.com/problems/flatten-2d-vector/description/) | [Discussion](https://leetcode.com/problems/flatten-2d-vector/discuss/67669)
 ```
@@ -1365,6 +1397,16 @@ Your algorithm should run in O(n) time and uses constant space.
 ```
 
 ## Dynamic Programming
+- [72. Edit Distance](#72) | [Leetcode](https://leetcode.com/problems/edit-distance/description/)
+```
+Given two words word1 and word2, find the minimum number of steps required to convert word1 to word2. (each operation is counted as 1 step.)
+
+You have the following 3 operations permitted on a word:
+
+a) Insert a character
+b) Delete a character
+c) Replace a character
+```
 
 - [560. Subarray Sum Equals K](#560) | [Leetcode](https://leetcode.com/problems/subarray-sum-equals-k/description/)
 ```
@@ -7286,31 +7328,65 @@ public class Solution extends Relation { // a b c d e f
 
 ### <a name="670"></a>670. Maximum Swap
 ```java
-/*
-Input: 2736
-Output: 7236
-*/
+//O(n)
 class Solution {
     public int maximumSwap(int num) {
-        if (num == 0) return 0;
-        char[] digitCharArray = String.valueOf(num).toCharArray();
-        
-        int[] digitIndex = new int [10];
-        for (int i = 0; i < digitCharArray.length; i ++) {
-            digitIndex[digitCharArray[i] - '0'] = i;
+        String s = String.valueOf(num);
+        int[] nums = new int[s.length()];
+        //we store every digit into array
+        for(int i = 0; i < nums.length; i++){
+            nums[i] = s.charAt(i) - '0';
         }
-        
-        for (int i = 0; i < digitCharArray.length; i ++) {
-            for (int k = 9; k > digitCharArray[i] - '0'; k --) {
-                if (digitIndex[k] > i) {
-                    char tmp = digitCharArray[i];
-                    digitCharArray[i] = digitCharArray[digitIndex[k]];
-                    digitCharArray[digitIndex[k]] = tmp;
-                    return Integer.valueOf(new String(digitCharArray));
-                }
+        //search for the first index where (next value > pre)
+        //if it keep decreasing, which means there is no max swap
+        //'9631'
+        int min = nums[0];
+        int minIndex = 0;
+        for(int i = 0; i < nums.length - 1; i++){
+            if(nums[i + 1] > nums[i]){
+                minIndex = i;
+                min = nums[i];
+                break;
+            }else if(i == nums.length - 2){
+                //which means the every digit is decreasing
+                return num;
             }
         }
-        return num;
+        
+        //From the minIndex, we start our search for the greatest digit in the remaining digits. 
+        //This will be our max and its index, maxIndex.
+        //'97482, where the min is 4 and max is 8.'
+        int max = nums[minIndex];
+        int maxIndex = minIndex;
+        for(int i = minIndex; i < nums.length; i++){
+            if(nums[i] >= max){
+                maxIndex = i;
+                max = nums[i];
+            }
+        }
+        
+        //There could be a digit < max whose index < minIndex
+        //'7'
+        int swapIndex = 0;
+        for(int i = 0; i <= minIndex; i++){
+            if(nums[i] < max){
+                swapIndex = i;
+                break;
+            }
+        }
+        
+        //swap the two digits
+        int tmp = nums[swapIndex];
+        nums[swapIndex] = nums[maxIndex];
+        nums[maxIndex] = tmp;
+        
+        //convert nums array to stringbuilder then to int
+        StringBuilder sb = new StringBuilder();
+        for(int i : nums){
+            sb.append(i);
+        }
+        int res = Integer.valueOf(sb.toString());
+        return res;
     }
 }
 ```
@@ -10545,4 +10621,67 @@ public int lengthOfLIS(int[] nums){
 	return len;
 }
 
+```
+### <a name="362"></a>362. Design Hit Counter
+```java
+class HitCounter {
+    private Queue<Integer> q;
+    /** Initialize your data structure here. */
+    public HitCounter() {
+        q = new LinkedList<>();
+    }
+    
+    /** Record a hit.
+        @param timestamp - The current timestamp (in seconds granularity). */
+    public void hit(int timestamp) {
+        q.offer(timestamp);
+    }
+    
+    /** Return the number of hits in the past 5 minutes.
+        @param timestamp - The current timestamp (in seconds granularity). */
+    public int getHits(int timestamp) {
+        while(!q.isEmpty() && timestamp - q.peek() >= 300){
+            q.poll();
+        }
+        return q.size();
+    }
+}
+
+/**
+ * Your HitCounter object will be instantiated and called as such:
+ * HitCounter obj = new HitCounter();
+ * obj.hit(timestamp);
+ * int param_2 = obj.getHits(timestamp);
+ */
+
+```
+### <a name="72"></a>72. Edit Distance
+```java
+class Solution {
+    public int minDistance(String word1, String word2) {
+        if(word1 == null || word2 == null || word1.length() == 0 || word2.length() == 0){
+            return Math.abs(word1.length() - word2.length());
+        }
+        int[][] dp = new int[word1.length() + 1][word2.length() + 1];
+        //initialize the table
+        dp[0][0] = 0;
+        for(int i = 1; i < dp.length; i++){
+            dp[i][0] = i;
+        }
+        for(int j = 1; j < dp[0].length; j++){
+            dp[0][j] = j;
+        }
+        
+        for(int i = 1; i < dp.length; i++){
+            for(int j = 1; j < dp[0].length; j++){
+                if(word1.charAt(i -1) != word2.charAt(j - 1)){
+                    dp[i][j] = Math.min(Math.min(dp[i-1][j-1], dp[i-1][j]), dp[i][j-1]) + 1;
+                }else{
+                    dp[i][j] = dp[i-1][j-1];
+                }
+            }
+        }
+        return dp[word1.length()][word2.length()];
+    }
+}
 ```
