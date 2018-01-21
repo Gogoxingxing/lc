@@ -10215,7 +10215,10 @@ public class Vector2D implements Iterator<Integer> {
 ### <a name="128"></a>128. Longest Consecutive Sequence
 ```java
 /**
-use a set to record all the numbers in the nums, and go through all the array, when the curNum is th start of the sequence, we keep checking whether the following numbers are in the array or not. maintain the maxLen.
+use a set to record all the numbers in the nums, 
+and go through all the array, 
+when the curNum is th start of the sequence, 
+we keep checking whether the following numbers are in the array or not. maintain the maxLen.
 
 time:O(n), space: O(n)
 Although the time complexity appears to be quadratic due to the while loop nested within the for loop, closer inspection reveals it to be linear. Because the while loop is reached only when currentNum marks the beginning of a sequence (i.e. currentNum-1 is not present in nums), the while loop can only run for nn iterations throughout the entire runtime of the algorithm. This means that despite looking like O(n∗n) complexity, the nested loops actually run in O(n+n)=O(n) time. All other computations occur in constant time, so the overall runtime is linear.
@@ -10331,7 +10334,12 @@ class MineSweeper {
 LRU has two properties: 
 1. maintain sequence -- FIFO,(array, linkedlist)
 2. quick search, giving specific key do the search(BST, Hashtable)
-We use a double linked list which enables us to quickly move nodes, because we need to move or add node one by one, and it is not suitabe to use array, so we use double linkedlist. Insert, remove, is O(1), randomly visit is O(n). which is different with array.
+We use a double linked list which enables us to quickly move nodes,
+because we need to move or add node one by one, 
+and it is not suitabe to use array, 
+so we use double linkedlist. 
+Insert, remove, is O(1), randomly visit is O(n). 
+which is different with array.
 we use hashtable of keys and double linked nodes to search
  */
 public class LRUCache {
@@ -10466,7 +10474,11 @@ class Solution {
 ### <a name="547"></a>547. Friend Circles
 ```java
 /*
-this is a graph problem, and represent in a matrix. we search every people in the row, and marked all the connected friends as "visited" and start from this person do  the depth first searching, find all the conected friend, these friends are a circle.
+this is a graph problem, and represent in a matrix. 
+we search every people in the row, 
+and marked all the connected friends as "visited" and 
+start from this person do the depth first searching, 
+find all the conected friend, these friends are a circle.
 
 Time complexity : O(n^2). The complete matrix of size n^2 is traversed.
 Space complexity : O(n). visited array of size n is used.
@@ -10497,7 +10509,9 @@ public class Solution {
 ### <a name="290"></a>290. Word Pattern
 ```java
 /*
-use two map to store the mapping between pattern and give string, if map1 already have the relation of current pattern, then we need to check if the pattern match to this character.
+use two map to store the mapping between pattern and give string, 
+if map1 already have the relation of current pattern,
+then we need to check if the pattern match to this character.
 for example:
 map1 ----- (a, cat)
 map2 ----- (cat, a)
@@ -10508,7 +10522,8 @@ already have a in map1, but cat != dog return false;
 
 ab
 cat cat
-already do not have b in map1, but map2 have (b, cat) which is a mismatch so return false;
+already do not have b in map1, 
+but map2 have (b, cat) which is a mismatch so return false;
 */
 public boolean wordPattern(String pattern, String str) {
     String[] strs = str.split(" ");
@@ -10564,11 +10579,24 @@ public class WordPattern {
 ### <a name="32"></a>32. Longest Valid Parentheses
 ```java
 /*
-Instead of finding every possible string and checking its validity, we can make use of stack while scanning the given string to check if the string scanned so far is valid, and also the length of the longest valid string. In order to do so, we start by pushing -1 onto the stack.
+Instead of finding every possible string and checking its validity,
+we can make use of stack while scanning the given string 
+to check if the string scanned so far is valid, 
+and also the length of the longest valid string. 
+In order to do so, we start by pushing -1 onto the stack.
 
-For every ‘(’ encountered, we push its index onto the stack.
+For every ‘(’ encountered, 
+we push its index onto the stack.
 
-For every ‘)’ encountered, we pop the topmost element and subtract the current element's index from the top element of the stack, which gives the length of the currently encountered valid string of parentheses. If while popping the element, the stack becomes empty, we push the current element's index onto the stack. In this way, we keep on calculating the lengths of the valid substrings, and return the length of the longest valid string at the end.
+For every ‘)’ encountered,
+ we pop the topmost element and 
+ subtract the current element's index from the top element of the stack,
+ which gives the length of the currently encountered valid string of parentheses. 
+ If while popping the element, 
+ the stack becomes empty, 
+ we push the current element's index onto the stack. 
+ In this way, we keep on calculating the lengths of the valid substrings
+ and return the length of the longest valid string at the end.
 
 time:O(n), space: O(n)
 
