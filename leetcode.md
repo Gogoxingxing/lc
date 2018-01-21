@@ -10433,10 +10433,11 @@ public class LRUCache {
 ```
 ### <a name="418"></a>418 sentence screen fitting
 ```java
-//1.顺序不变 2. 不可拆开单词 3. 
+//1.顺序不变 2. 不可拆开单词 
 //改造 ["ab","cde","f"] --> "ab cde f"
 //count: how many char of the reformatted sentence is on the screen
-//count % length of reformatted sentence: the starting position of the next row
+//count % length of reformatted sentence: 
+//the starting position of the next row
 //answer: count / len of reformatted sentence
 //time: O(row * word len), space: O(n)
 /*
@@ -10444,23 +10445,22 @@ len = 8
 rows: 5, cols: 4
 ab cde f ab cde f ab cde f...
 xxx-
-   xxxx
+   xxxx // try to place 4 characters, 最后一个字符是空格，所以不在一个单词中间
+       xxxxx // next line start with c
+            xxxx
+                xxxx
 */
 class Solution {
     public int wordsTyping(String[] sentence, int rows, int cols) {
-        StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < sentence.length; i++){
-            sb.append(sentence[i]);
-            sb.append(" ");
-        }
-        String s = sb.toString();
+        String s = String.join(" ", sentence) + " ";
         int len = s.length();
         int count = 0;
         for(int i = 0; i < rows; i++){
             count += cols;
+            //可以放，不在单词中间
             if(s.charAt((count % len)) == ' '){
                 count++;
-            }else{//可能在某个单词的中间
+            }else{//可能在某个单词的中间，所以要看看当前字符后面的字符是否是空格
                 while(count > 0 && s.charAt(((count - 1) % len)) != ' '){
                     count--;//后退直到碰到空格
                 }
