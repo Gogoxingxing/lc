@@ -10331,102 +10331,133 @@ class MineSweeper {
 ### <a name="146"></a>146. LRU Cache
 ```java
 /**
+最近用的缓存
+无论插入还是取出（分为存在或者不存在），只要存在都要重新排序
+HashMap + double linkedlist（用arraylist的话不可以是O(1)的操作，
+所以要用linkedlist，）
+1-》2-》3-》4
+通过hasmap找到3，若要删除3的话不知道3前面的元素，所以要用double linkedlist
+通过3找到2再删除
+
 LRU has two properties: 
 1. maintain sequence -- FIFO,(array, linkedlist)
 2. quick search, giving specific key do the search(BST, Hashtable)
+
+put(1,1) --> (1,1) is a entry
+
 We use a double linked list which enables us to quickly move nodes,
 because we need to move or add node one by one, 
 and it is not suitabe to use array, 
 so we use double linkedlist. 
 Insert, remove, is O(1), randomly visit is O(n). 
-which is different with array.
-we use hashtable of keys and double linked nodes to search
- */
-public class LRUCache {
-    private Map<Integer, DLinkNode> cache;
-    DLinkNode tail = null;
-    DLinkNode head = null;
-    int capacity;
 
-    public LRUCache(int capacity) {
-        cache = new HashMap<Integer, DLinkNode>();
-        this.capacity = capacity;
+we use hashtable of keys(what element in the cache) 
+and value(pointer point to the element in linkedlist)
+double linked nodes to search
+ */
+class Node{
+    int key;
+    int value;
+    Node next;
+    Node pre;
+    public Node(int key, int value){
+        this.key = key;
+        this.value = value;
     }
-    
-    public int get(int key) {
-        if (cache.containsKey(key)) {
-            DLinkNode target = cache.get(key);
-            int value = target.value;
-            target.update();
-            return value;
-        } else return -1;
+}
+private HashMap<Integer, Node> map;
+private int capacity;
+private Node head;
+private Node tail;
+
+public LRUCache(int capacity){
+    map = new HashMap<>();
+    this.capacity = capacity;
+    head = null;
+    tail = null;
+}
+
+public int get(int key){
+    Node node = map.get(key);
+    if(node == null){
+        return -1;
     }
-    
-    public void set(int key, int value) {
-        if (cache.containsKey(key)) {
-            DLinkNode target = cache.get(key);
-            target.value = value;
-            target.update();
-        } else {
-            if (capacity == 0) return;
-            if (cache.size() == capacity) {
-                cache.remove(head.key);
-                head.removeFromHead();
+    //re order the cache
+    if(node != tail){//当等于尾部的时候 不需要排序直接更新就好
+        //但不等于尾部的时候
+            if(node == head){
+                head = head.next;
+            }else{
+                //不是头部 需要移除尾部元素
+                node.pre.next = node.next;
+                node.next.pre = node.pre;
             }
-            DLinkNode newNode = new DLinkNode(key, value);
-            newNode.append();
-            cache.put(key, newNode);
+            tail.next = node;
+            node.pre = tail;
+            node.next = null;
+            tail = node;
         }
-    }
-    
-    class DLinkNode {
-        int key;
-        int value;
-        DLinkNode left = null;
-        DLinkNode right = null;
-        public DLinkNode(int key, int value) {
-            this.key = key;
-            this.value = value;
-        }
-        // remove head from list and update head reference.
-        private void removeFromHead() {    
-            // if 'this' is the only node, set both head and tail to null.
-            if (tail == this) {             
-                head = null;
-                tail = null;
-            } else {
-                head = this.right;
-                head.left = null;
+        return node.value;
+}
+
+/*
+capacity: 2 --- 1
+map: 
+1,1 进入head = newNode，所以1就是newNode
+h,t
+
+再加入(2,2)
+1,1 -> 2,2 -> null
+h       t
+
+再加入(3,3)要删除（1，1）
+
+
+*/
+//插入的存在还是不存在
+public void put(int key, int value){
+    Node node = map.get(key);//存在的话，node！= null
+    /*
+    2,2 -> 3,3 -> null
+    */
+
+    if(node != null){
+        node.value = value;
+        if(node != tail){//当等于尾部的时候 不需要排序直接更新就好
+        //但不等于尾部的时候
+            if(node == head){
+                head = head.next;
+            }else{
+                //不是头部 需要移除尾部元素
+                node.pre.next = node.next;
+                node.next.pre = node.pre;
             }
+            tail.next = node;
+            node.pre = tail;
+            node.next = null;
+            tail = node;
         }
-        private void update() {
-            // no need to update if accessing the most revently used value.
-            if (tail == this) return;       
-            else { 
-                 // remove from current postion and update nodes (if any) on both sides.
-                if (this != head) {        
-                    this.left.right = this.right;
-                } else {
-                    head = this.right;
-                }
-                this.right.left = this.left;
-                 // append to tail.
-                this.append();             
-            }
+    }else{
+        //插入新值
+        Node newNode = new Node(key, value);
+        //check capacity
+        if(capacity == 0){//add and remove
+            Node temp = head;
+            head = head.next;
+            map.remove(temp.key);
+            capacity++;
         }
-        private void append() {
-            // inserting the first node.
-            if (tail == null) {     
-                head = this;
-                tail = this;
-            // appned as tail and update tail reference.
-            } else {                
-                this.right = null;
-                this.left = tail;
-                tail.right =this;
-                tail = this; 
-            }
+        //cache里没东西
+        if(head == null && tail == null){
+            head = newNode;
+        }else{//cahce有值
+            tail.next = newNode;
+            newNode.pre = tail;
+            newNode.next = null;
         }
+        tail = newNode;
+        map.put(key, newNode);
+        capacity--;
     }
 }
 
