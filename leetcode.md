@@ -11484,3 +11484,56 @@ public class ReservoirSampling
 }
 
 ```
+### <a name="1007"></a>1007. judge square
+```java
+/*
+if two opposite line they are equal which means it is Parallelogram
+under this condition, if adjacent lines are perpendicular
+it should be square or ranctangular
+under this condition, id adjacent lines are equal, square
+otherwise is ranctangular
+if adjacent lines are not perpendicualr but equal it is diamond
+*/
+public class JudgeSquare {
+    public String check(Point[] p) {
+        String res = "";
+        int px = (p[1].x - p[0].x);
+        int py = (p[1].y - p[0].y);
+
+        int qx = (p[2].x - p[3].x);
+        int qy = (p[2].y - p[3].y);
+
+        int rx = (p[2].x - p[1].x);
+        int ry = (p[2].y - p[1].y);
+
+        int tx = p[3].x - p[0].x;
+        int ty = p[3].y - p[0].y;
+
+        if (px == qx && py == qy && rx == tx && ry == ty)//两组对边分别相等-->平行四边形
+        {
+            if (px * rx + py * ry == 0)//+邻边垂直-->矩形或正方形
+            {
+                if (px * px + py * py == rx * rx + ry * ry)//+邻边相等-->正方形
+                {
+                    res = "Square";
+                } else
+                    res = "Rectangle";
+            } else if (px * px + py * py == rx * rx + ry * ry)//+邻边不垂直但相等-->菱形
+            {
+                res = "Diamond";
+            } else//平行四边形
+                res = "Parallelogram";
+        } else
+            res = "Others";
+        return res;
+    }
+}
+
+class Point{
+    int x,y;
+    Point(int x, int y){
+        this.x = x;
+        this.y = y;
+    }
+}
+```
