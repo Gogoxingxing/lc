@@ -3133,13 +3133,32 @@ public class Solution {
 ### <a name="140"></a>140. Word Break II
 ```java
 /*
+例子：
+c   a   t   s   a   n   d   d   o   g
+0   1   2   3   4   5   6   7   8   9
+
+start: 0    map: empty       另一层dfs end:4  start:4.....
+end: 1   (0,1)-->c 没有 end++
+end: 2   (0,2)-->ca 没有 end++
+end：3    (0,3)-->cat --> next dfs
+          start: 3 map:empty    “sand dog”
+          end: 4----直到7 --> dfs
+                    start:7  map: empty      7“dog”
+                    end:8 ----直到end=10  res有dog
+                    
+
+
 Time complexity is O(len(wordDict) ^ len(s / minWordLenInDict)), because there're len(wordDict) possibilities for each cut
 
 brute force solution:
 check every possible prefix of string in the dictionary of words, 
-if it is found in the dictionary, let say it is s1, then the recursive function is called for the for the remaining portion of that string. 
-this function returns the prefix s1 appended by the result of recursive call using the remaining portion of the string which is (s - s1), 
-if the remaining portion is a substring which can lead to the formation of a valid sentence as per the dictionary. Otherwise, empty list is returned.
+if it is found in the dictionary, let say it is s1, 
+then the recursive function is called for the for the remaining portion of that string. 
+if the remaining portion is a substring 
+which can lead to the formation of a valid sentence as per the dictionary
+this function returns the prefix s1 appended by the result of 
+recursive call using the remaining portion of the string which is (s - s1). 
+Otherwise, empty list is returned.
 
 Time complexity : O(n^n). Consider the worst case where s=``aaaaaaa"s=‘‘aaaaaaa" and every prefix of ss is present in the dictionary of words, then the recursion tree can grow up to n^n.
 
