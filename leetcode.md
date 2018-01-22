@@ -3291,64 +3291,75 @@ class Solution {
 ### <a name="381"></a>381. Insert Delete GetRandom O(1) - Duplicates allowed
 ```java
 /*
-using arraylist to store insert value, hashmap to map element to index, because there maybe duplicates, therefore, the value of map should be a set
+using arraylist to store insert value, 
+hashmap to map element to index, 
+because there maybe duplicates, 
+therefore, the value of map should be a set
 */
 
 class RandomizedCollection {
       /** Initialize your data structure here. */
+    List<Integer> list;
+	Map<Integer, Set<Integer>> map;
+    //同一个数的index可能有多个，所以value改成set，存所有的index
     public RandomizedCollection() {
-        
+        map = new HashMap<Integer, Set<Integer>>();
+        list = new ArrayList<Integer>();
     }
-    List<Integer> vals = new ArrayList<Integer>();
-	Map<Integer, Set<Integer>> val2idx = new HashMap<Integer, Set<Integer>>();
 
     /** Inserts a value to the collection. Returns true if the collection did not already contain the specified element. */
     public boolean insert(int val) {
-        boolean flag = false;
-        Set<Integer> idxs = null;
-        if (val2idx.containsKey(val)) {
-            idxs = val2idx.get(val);
-			flag=false;
-		} else {
-		    idxs = new HashSet<Integer>();
-			flag=true;
-		}
-		idxs.add(vals.size());
-        vals.add(val);
-        val2idx.put(val,idxs);
-		return flag;
+        //判断在不在mapli，若不在里面
+        //插入新的数
+        boolean contain = map.containsKey(val);
+        if(!contain){
+            map.put(val, new HashSet<>());
+        }
+        //把当前list中的index给hashset
+        map.get(val).add(list.size());
+        list.add(val);
+        return !contain;
     }
-    
+
+/*
+list: 2,3,3,4  remove val = 3
+map: 2:0
+     3:1,2   index = 2
+     4:3
+    |||||||
+    lastVal = 4
+    变成    list：2，3，4
+    2：0
+    3：1
+    4：3
+  */  
     /** Removes a value from the collection. Returns true if the collection contained the specified element. */
     public boolean remove(int val) {
-        if (!val2idx.containsKey(val)) {
-			return false;
-		} else {
-		    Set<Integer> rmIdxs = val2idx.get(val);
-		    int rmIdx = rmIdxs.iterator().next();//被删除元素的下标
-			if (rmIdx < vals.size() - 1&&val!=vals.get(vals.size()-1)) {//若刪除的不是末尾元素，且被刪除元素不等于末尾元素（若相等的话就当做删除末尾
-				// 将末尾元素存入被删除元素的位置，并更新相应下标
-				int lastElem = vals.get(vals.size() - 1);//末尾元素
-				Set<Integer> lastElemIdxs = val2idx.get(lastElem);//末尾元素的index集合
-				lastElemIdxs.remove(vals.size()-1);
-				lastElemIdxs.add(rmIdx);
-				vals.set(rmIdx,lastElem);
-				val2idx.put(lastElem,lastElemIdxs);
-			}
-			rmIdxs.remove(rmIdx);
-			if(rmIdxs.size()==0){
-				val2idx.remove(val);
-			}else{
-				val2idx.put(val,rmIdxs);
-			}
-			vals.remove(vals.size() - 1);
-			return true;
-		}
+        //如果没有则返回false
+        if(!map.containsKey(val)) return false;
+        //若找到了，把index拿出来
+        //因为是hashset，所以我们随机取出任何一个数
+        int index = map.get(val).iterator().next();
+        //把当前index的数删除
+        map.get(val).remove(index);
+        //若删除之后size为0，直接把这个value全部删除即可
+        if(map.get(val).size() == 0){
+            map.remove(val);
+        }
+        //把结尾的数取出来
+        int lastVal = list.remove(list.size() - 1);
+        //调换位置
+        if(index != list.size()){
+            list.set(index, lastVal);
+            map.get(lastVal).remove(list.size());
+            map.get(lastVal).add(index);
+        }
+        return true;
     }
     
    	Random r = new Random();
 	public int getRandom() {
-		return vals.get(r.nextInt(vals.size()));
+		return list.get(r.nextInt(list.size()));
 	}
 }
 
@@ -3365,11 +3376,21 @@ class RandomizedCollection {
 ```java
 /*
 解释：
-because need to do the operation in constant time, therefore, I will use a arraylist and hashmap to solve this problem. arraylist to record each value we do the insert operation. because the delete operation of hashmap is O(1) while arraylist is not constant time, therefore, inorder to make the delete is also constant time, we need to exchange the position of the number need to be deleted with the last number of list, then change the corresponding value in hashmap. therefore we only need to delete the last element of list.
+because need to do the operation in constant time, therefore, 
+I will use a arraylist and hashmap to solve this problem. 
+arraylist to record each value we do the insert operation. 
+because the delete operation of hashmap is O(1) while arraylist is not constant time, therefore, 
+inorder to make the delete is also constant time, 
+we need to exchange the position of the number need to be deleted with the last number of list, 
+then change the corresponding value in hashmap. 
+therefore we only need to delete the last element of list.
 */
 class RandomizedSet {
     private Random random;
-    private Map<Integer, Integer> locationMap;//used to build mapping between each number and it position in the arraylist
+    private Map<Integer, Integer> locationMap;
+    //key:number we want to insert   
+    //value: position in arraylist
+    //used to build mapping between each number and it position in the arraylist
 
     private List<Integer> values;//store value
     /** Initialize your data structure here. */
@@ -3384,7 +3405,9 @@ class RandomizedSet {
         if (locationMap.containsKey(val)) {
             return false;
         }
-        //if it is not in the map, we insert it into the end of list, and build mapping relation
+        //if it is not in the map, 
+        //we insert it into the end of list, 
+        //and build mapping relation
         locationMap.put(val, values.size());
         values.add(val);
         return true;
@@ -3396,11 +3419,15 @@ class RandomizedSet {
             return false;
         }
         
-        //将要删除的数字和数组的最后一个数字调换个位置，然后修改对应的哈希表中的值，这样我们只需要删除数组的最后一个元素即可，保证了常数时间内的删除。
-        int index = locationMap.remove(val); //return 
+        //将要删除的数字和数组的最后一个数字调换个位置，
+        //然后修改对应的哈希表中的值，
+        //这样我们只需要删除数组的最后一个元素即可，保证了常数时间内的删除。
+        int index = locationMap.remove(val); 
         int replacedValue = values.remove(values.size() - 1);
         
-        if (index != values.size()) {//means that the list still have value, so we need to update the
+        if (index != values.size()) {
+            //means that the list still have value, 
+            //so we need to update
             locationMap.put(replacedValue, index);
             values.set(index, replacedValue);
         }
