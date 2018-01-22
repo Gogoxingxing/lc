@@ -2622,11 +2622,15 @@ sort by the (ascending) end time of interval and find the compatible intervals,
 then the incompatible intervals should be the total number minus the compatible numbers.
 
 why sort by end? : 
-e.g. [ [1,4], [2,3], [3,4] ], the interval with early start might be very long and incompatible with many intervals. 
+e.g. [ [1,4], [2,3], [3,4] ], 
+the interval with early start might be very long 
+and incompatible with many intervals. 
 But if we choose the interval that ends early, 
 we’ll have more space left to accommodate more intervals. 
 
-Sorting Interval.end in ascending order is O(nlogn), then traverse intervals array to get the maximum number of non-overlapping intervals is O(n). Total is O(nlogn).
+Sorting Interval.end in ascending order is O(nlogn), 
+then traverse intervals array to get the maximum number of non-overlapping intervals is O(n). 
+Total is O(nlogn).
 
 例子：
 Input: [ [1,2], [2,3], [3,4], [1,3] ]
@@ -2789,44 +2793,6 @@ public class Solution {
 ```java
 /*
 解题思路：
-brute force:trying to find out every possible square of 1’s that can be formed from within the matrix. Starting from the left uppermost point in the matrix, we search for a 1. No operation needs to be done for a 0. Whenever a 1 is found, we try to find out the largest square that can be formed including that 1. For this, we move diagonally (right and downwards), i.e. we increment the row index and column index temporarily and then check whether all the elements of that row and column are 1 or not. If all the elements happen to be 1, we move diagonally further as previously. If even one element turns out to be 0, we stop this diagonal movement and update the size of the largest square. Now we, continue the traversal of the matrix from the element next to the initial 1 found, till all the elements of the matrix have been traversed.
-
-*/
-public class Solution {
-    public int maximalSquare(char[][] matrix) {
-        int rows = matrix.length, cols = rows > 0 ? matrix[0].length : 0;
-        int maxsqlen = 0;
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                if (matrix[i][j] == '1') {
-                    int sqlen = 1;
-                    boolean flag = true;
-                    while (sqlen + i < rows && sqlen + j < cols && flag) {
-                        for (int k = j; k <= sqlen + j; k++) {
-                            if (matrix[i + sqlen][k] == '0') {
-                                flag = false;
-                                break;
-                            }
-                        }
-                        for (int k = i; k <= sqlen + i; k++) {
-                            if (matrix[k][j + sqlen] == '0') {
-                                flag = false;
-                                break;
-                            }
-                        }
-                        if (flag)
-                            sqlen++;
-                    }
-                    if (maxsqlen < sqlen) {
-                        maxsqlen = sqlen;
-                    }
-                }
-            }
-        }
-        return maxsqlen * maxsqlen;
-    }
-}
-/*
 We initialize another matrix (dp) with the same dimensions 
 as the original one initialized with all 0’s.
 
