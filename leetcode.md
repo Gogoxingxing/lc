@@ -2702,9 +2702,13 @@ public TreeNode helper(int preStart, int inStart, int inEnd, int[] preorder, int
 /*
 Solution 1:
 minHeap
+define a new datastructure named tuple,
+it include information like the row index, col index and value
 Build a minHeap of elements from the first row.
 Do the following operations k-1 times :
-Every time when you poll out the root(Top Element in Heap), you need to know the row number and column number of that element(so we can create a tuple class here), replace that root with the next element from the same column.
+Every time when you poll out the root(Top Element in Heap), 
+you need to know the row number and column number of that element(so we can create a tuple class here), 
+replace that root with the next element from the same column.
 time: O(nlogk)
 */
 public class Solution {
@@ -2823,11 +2827,16 @@ public class Solution {
     }
 }
 /*
-We initialize another matrix (dp) with the same dimensions as the original one initialized with all 0’s.
+We initialize another matrix (dp) with the same dimensions 
+as the original one initialized with all 0’s.
 
-dp(i,j) represents the side length of the maximum square whose bottom right corner is the cell with index (i,j) in the original matrix.
+dp(i,j) represents the side length of the maximum square 
+whose bottom right corner is the cell with index (i,j) 
+in the original matrix.
 
-Starting from index (0,0), for every 1 found in the original matrix, we update the value of the current element as:
+Starting from index (0,0), 
+for every 1 found in the original matrix, 
+we update the value of the current element as:
 dp(i, j) = min(dp(i-1, j), dp(i - 1, j - 1), dp(i, j - 1)) + 1
 
 0 1 1 1 0           0 1 1 1 0
@@ -2836,7 +2845,12 @@ dp(i, j) = min(dp(i-1, j), dp(i - 1, j - 1), dp(i, j - 1)) + 1
 0 1 1 1 1           0 1 2 3 2
 0 0 1 1 1           0 0 1 2 3
 
-We also remember the size of the largest square found so far. In this way, we traverse the original matrix once and find out the required maximum size. This gives the side length of the square (say maxsqlenmaxsqlen). The required result is the area maxsqlen^2.
+We also remember the size of the largest square found so far. 
+In this way, 
+we traverse the original matrix once 
+and find out the required maximum size. 
+This gives the side length of the square (say maxsqlenmaxsqlen). 
+The required result is the area maxsqlen^2.
 
 time:O(mn), space:O(mn)
 */
@@ -2894,11 +2908,24 @@ words = ["oath","pea","eat","rain"]
 
 Solution 1 (backtracking):
 解题思路：
-For each word in the words list, we search it in the board, the searching process can using backtracking, the terminate condition is we have searched the last index of the word. For example, here is the board, and I will use word “oath” to go through my solution. Find the first character ‘o’ in the board, and start from here, using Deep First Search searching the four position around the current position. If we find a match to the second character of the word, we go to the next level. When we find the all word in the board, return true and add it to the result list. We use the same way to search the rest of word in the word list.
+For each word in the words list, 
+we search it in the board, 
+the searching process can using backtracking, 
+the terminate condition is we have searched the last index of the word.
+For example, here is the board, 
+and I will use word “oath” to go through my solution. 
+Find the first character ‘o’ in the board, 
+and start from here, 
+using Deep First Search searching the four position around the current position. 
+If we find a match to the second character of the word,
+we go to the next level. 
+When we find the all word in the board, 
+return true and add it to the result list. 
+We use the same way to search the rest of word in the word list.
 
 Time complexity:O(m * N^2 * 4^K), 4 to the power of k
 m is the words.length, N^2 is the board size, k is the average length of word in the word list
-First we have to find the first letter to start, which gives time O(N^2), then for each search step it has 2~4 neighbours to go, and it has k steps, where k is the length of the word to be searched.
+First we have to find the first letter to start, which gives time O(N^2),then for each search step it has 2~4 neighbours to go, and it has k steps, where k is the length of the word to be searched.
 */
 class Solution {
     public List<String> findWords(char[][] board, String[] words) {
@@ -2948,7 +2975,17 @@ class Solution {
 }
 
 /* the best solution
-we can use trie tree to solve this problem, if we solve it just by dfs, we need to do many duplicate findings during the process, and it is time consuming, so we insert every words in the words list to a trie tree to reduce the searching times of the same characters. And we also store the word itself at the leaf node. Base on the trie tree, we use the depth first search go through the board, if the word sequence is in the trietree, add it to the result list.
+we can use trie tree to solve this problem, 
+if we solve it just by dfs, 
+we need to do many duplicate findings during the process, 
+and it is time consuming, 
+so we insert every words in the words list to a trie tree 
+to reduce the searching times of the same characters. 
+And we also store the word itself at the leaf node. 
+Base on the trie tree, 
+we use the depth first search go through the board, 
+if the word sequence is in the trietree, 
+add it to the result list.
 */
 public List<String> findWords(char[][] board, String[] words) {
     List<String> res = new ArrayList<>();
@@ -3002,7 +3039,12 @@ class TrieNode {
 
 ### <a name="71"></a>71. Simplify Path
 ```java
-//解题思路：data structure i will use is set and stack. we split the path with / into subPath, and the set we store the non-letter character: ".", ".." and "". we check subPath and if it not in the set, we push them into stack as one of the path. during this process, we also need to handle the ".." case, when meet this, we have to pop the top element out.
+//解题思路：data structure i will use is set and stack. 
+//we split the path with / into subPath, 
+//and the set we store the non-letter character: ".", ".." and "". 
+//we check subPath and if it not in the set, we push them into stack as one of the path. 
+//during this process, we also need to handle the ".." case, 
+//when meet this, we have to pop the top element out.
 //time: O(n)
 class Solution {
     public String simplifyPath(String path) {
@@ -6925,12 +6967,25 @@ class Solution {
 ### <a name="240"></a>240. Search a 2D Matrix II
 ```java
 /*
-再说这个：we can use a pointer at (row, col) to the bottom left of the matrix, then if the currently pointed value is larger than target we can move one row up; if it is smaller, we move one col right
+再说这个：
+we can use a pointer at (row, col) to the bottom left of the matrix,
+then if the currently pointed value is larger than target 
+we can move one row up; 
+if it is smaller, we move one col right
 
 先说这个：why this algorithm works?
-because the rows are sorted from left-to-right, we know that every value to the right of the current value is larger. Therefore, if the current value is already larger than target, we know that every value to its right will also be too large. A very similar argument can be made for the columns, so this manner of search will always find target in the matrix (if it is present)
+because the rows are sorted from left-to-right, 
+we know that every value to the right of the current value is larger.
+Therefore, if the current value is already larger than target, 
+we know that every value to its right will also be too large. 
+Same for the columns, 
+so this manner of search will always find target in the matrix (if it is present)
 
-time:O(m+n): on every iteration (during which we do not return true) either row or col is is decremented/incremented exactly once. Because row can only be decremented mm times and col can only be incremented n times before causing the while loop to terminate, the loop cannot run for more than n+m iterations. Because all other work is constant, the overall time complexity is linear in the sum of the dimensions of the matrix.
+time:O(m+n): on every iteration (during which we do not return true) either row or col is is decremented/incremented exactly once. 
+Because row can only be decremented mm times and col can only be incremented n times before causing the while loop to terminate, 
+the loop cannot run for more than n+m iterations. 
+Because all other work is constant, 
+the overall time complexity is linear in the sum of the dimensions of the matrix.
 space: O(1)
 */
 
@@ -6962,7 +7017,9 @@ class Solution {
 解题思路：
 use binary search
 Eliminating one row/one column at a time. 
-start from top-rightmost element in matrix (matrix[0][n-1]) and remove row if target is greater than matrix[0][n-1] or remove column if target is lesser than matrix[0][n-1].
+start from top-rightmost element in matrix (matrix[0][n-1]) 
+and remove row if target is greater than matrix[0][n-1] 
+or remove column if target is lesser than matrix[0][n-1].
 repeat step 1 until you find the element!
 
 test case: target = 3
@@ -6991,7 +7048,8 @@ public boolean searchMatrix(int[][] matrix, int target){
 
 /*
 解释：
-instead of treat it as a 2d matrix, we treat it just as a sorted list and then use binary search.
+instead of treat it as a 2d matrix, 
+we treat it just as a sorted list and then use binary search.
 n * m matrix convert to an array => matrix[x][y] => a[x * m + y]
 an array convert to n * m matrix => a[x] =>matrix[x / m][x % m];
 */
