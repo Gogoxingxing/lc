@@ -1797,6 +1797,22 @@ A solution set is:
   [2, 2, 3]
 ]
 ```
+- [77. Combinations](#77) | [Leetcode](https://leetcode.com/problems/combinations/description/)
+```
+Given two integers n and k, return all possible combinations of k numbers out of 1 ... n.
+
+For example,
+If n = 4 and k = 2, a solution is:
+
+[
+  [2,4],
+  [3,4],
+  [2,3],
+  [1,2],
+  [1,3],
+  [1,4],
+]
+```
 
 - [46. Permutations](#46) | [Leetcode](https://leetcode.com/problems/permutations/description/)
 ```
@@ -3769,6 +3785,12 @@ public class Solution {
 
 ### <a name="39"></a>39. Combination Sum
 ```java
+/*
+find all combinations and compare with target,
+if it is valid add to result list.
+nums has size n
+time: 2^n
+*/
 public List<List<Integer>> combinationSum(int[] nums, int target) {
     List<List<Integer>> list = new ArrayList<>();
     Arrays.sort(nums);
@@ -3803,6 +3825,16 @@ private void backtrack(List<List<Integer>> list, List<Integer> tempList, int [] 
     else{
         for(int i = start; i < nums.length; i++){
             if(i > start && nums[i] == nums[i-1]) continue; // skip duplicates
+            //for example:
+            /*
+            1,2,2',3  t=7
+            1(7) -> 2(6) -> 2'(4) -> 3(2)...
+                         \  3(4)...
+                 \2'(6) -> 3(4)...         
+            duplicate therefore we use nums[i] == nums[i-1] to skip
+            but donot want to skip 122'4, therefore we also need i>start
+            current index not equals to current level first index
+            */
             tempList.add(nums[i]);
             backtrack(list, tempList, nums, remain - nums[i], i + 1);
             tempList.remove(tempList.size() - 1); 
@@ -3810,6 +3842,34 @@ private void backtrack(List<List<Integer>> list, List<Integer> tempList, int [] 
     }
 } 
 
+```
+### <a name="77"></a>77. Combinations
+```java
+//test n = 3, k = 2
+//[1,2,3] -- [1,2][1,3][2,3]
+
+class Solution {
+    public List<List<Integer>> combine(int n, int k) {
+        List<List<Integer>> res = new ArrayList<>();
+        if(n == 0 || k == 0){
+            return res;
+        }
+        List<Integer> tmpList = new ArrayList<>();
+        backtracking(n, k, 1, tmpList, res);
+        return res;
+    }
+    public void backtracking(int n, int k, int start, List<Integer> tmpList, List<List<Integer>> res){
+        if(tmpList.size() == k){
+            res.add(new ArrayList<>(tmpList));
+            return;
+        }
+        for(int i = start; i <= n; i++){
+            tmpList.add(i);//1 // 2 //3
+            backtracking(n, k, i + 1, tmpList, res);//try 2 -- end remove 2 -- try 3 -- end remove 3 -- end remove 1 //try 3 -- end remove 2 // cannot enter for loop in next level just remove 3 end.
+            tmpList.remove(tmpList.size() - 1);
+        }
+    }
+}
 ```
 
 ### <a name="28"></a>28. Implement strStr()
@@ -6781,6 +6841,9 @@ class Solution {
     public void search(List<List<Integer>> list, List<Integer> tmpList, int[] nums, int index) {
         list.add(new ArrayList<>(tmpList));
         for (int i = index; i < nums.length; i ++) {
+            //两个数字相同
+            //前一个数字在前一轮没被取到，但是后一个数字在这一轮被取到
+            //会出现重复
             if (i != index && nums[i] == nums[i - 1]) continue;
             tmpList.add(nums[i]);
             search(list, tmpList, nums, i + 1);
@@ -6801,6 +6864,13 @@ while(Problem is not solved)
         before which undo the current move.
     End For
 If none of the move works out, return false, NO SOLUTON.
+
+null -> null -> null -> null / 3
+             -> 2    -> 2 / 23
+    ->  1    -> 1    -> 1 / 13
+             -> 12   -> 12 / 123  
+
+
 */
 class Solution {
     public List<List<Integer>> subsets(int[] nums) {
@@ -6810,6 +6880,12 @@ class Solution {
     }
     
     public void search(List<List<Integer>> list, List<Integer> tmpList, int[] nums, int index) {
+        //templist is a parameter
+        //forjava if this parameter is object, then it will pass the
+        //reference of this object
+        //if it is add(tmplist), which means add reference
+        //but after the backtracking, templist life cycle ended
+        //so it equals not adding anything
         list.add(new ArrayList<>(tmpList));
         for (int i = index; i < nums.length; i ++) {
             tmpList.add(nums[i]);
