@@ -286,9 +286,16 @@ In this case, you should ignore redundant slashes and return "/home/foo".
 
 
 ## TREE
+- [Convert Binary Search Tree (BST) to Sorted Doubly-Linked List](#1008) | 
+```
+Specifically, we want to do the transformation in place. After the transformation, the left pointer of the tree node should point to its predecessor, and the right pointer should point to its successor. We should return the pointer to the first element of the linked list.
 
-- [314. Binary Tree Vertical Order Traversal
-](#314) | [Leetcode](https://leetcode.com/problems/binary-tree-vertical-order-traversal/description/)
+The figure below shows the transformed BST. The solid line indicates the successor relationship, while the dashed line means the predecessor relationship.
+
+```
+
+
+- [314. Binary Tree Vertical Order Traversal](#314) | [Leetcode](https://leetcode.com/problems/binary-tree-vertical-order-traversal/description/)
 
 - [Check complete binary tree](#complete-binary-tree) | [Solution](http://www.geeksforgeeks.org/check-whether-binary-tree-complete-not-set-2-recursive-solution/)
 
@@ -11682,4 +11689,62 @@ class Point{
         this.y = y;
     }
 }
+```
+### <a name="1008"></a>1008. Convert Binary Search Tree (BST) to Sorted Doubly-Linked List
+```java
+/**
+As we traverse the tree in-order, 
+we could safely modify a node’s left pointer to point to the previously traversed node as we never use it once we reach a node. 
+We would also need to modify the previously traversed node’s right pointer to point to the current node. 
+we are still missing two more steps. 
+First, we did not assign the list’s head pointer. 
+Second, the last element’s right pointer does not point to the first element (similar to the first element’s left pointer).
+
+My approach is pretty easy: 
+Just update the current node’s right pointer to point back to the head 
+and the head’s left pointer to point to current node in each recursive call. 
+As the recursion ends, 
+the list’s head and tail would be automagically updated with the correct pointers. 
+Don’t forget to check for this special case: 
+A list with only one element should have its left and right pointers both pointing back to itself.
+
+*/
+
+/*
+// Definition for a Node.
+class Node {
+    public int val;
+    public Node left;
+    public Node right;
+
+    public Node() {}
+
+    public Node(int _val,Node _left,Node _right) {
+        val = _val;
+        left = _left;
+        right = _right;
+    }
+};
+*/
+class Solution {
+    Node prev;
+    Node head;
+    public Node treeToDoublyList(Node node) {
+        if(node == null) return null;  
+        treeToDoublyList(node.left);  //处理当前节点的左子节点
+        node.left = prev;  
+        if(prev != null) {  
+            prev.right = node;  
+        } else {  
+            head = node;  
+        }  
+        prev = node;  
+        Node right = node.right;  
+        head.left = node;  //头节点left与尾节点相连
+        node.right = head; //尾节点right与头节点相连
+        treeToDoublyList(right);  //处理当前节点的右子节点
+        return head;  
+    }
+}
+
 ```
